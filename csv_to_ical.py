@@ -7,7 +7,7 @@ def csv_to_ical(csv_file, ical_file):
         reader = csv.DictReader(infile)
         outfile.write("BEGIN:VCALENDAR\n")
         outfile.write("VERSION:2.0\n")
-        outfile.write("PRODID:-//Your Script//CSV to iCal//EN\n")
+        outfile.write("PRODID:-//Generated from w-hol's nexus-timetable-to-ical on GitHub//CSV to iCal//EN\n")
         outfile.write("CALSCALE:GREGORIAN\n")
         outfile.write("X-WR-CALNAME;VALUE=TEXT:output\n")
         for row in reader:

@@ -2,6 +2,19 @@ import csv
 import re
 from datetime import datetime, timedelta
 from csv_to_ical import csv_to_ical
+import tkinter as tk
+from tkinter import filedialog
+
+# File picker for CSV
+root = tk.Tk()
+root.withdraw()
+csv_path = filedialog.askopenfilename(
+    title="Select your CSV file",
+    filetypes=[("CSV Files", "*.csv"), ("All Files", "*.*")]
+)
+if not csv_path:
+    print("No file selected. Exiting.")
+    exit(1)
 
 # Prompts the user for a valid integer in a specified range until one is provided.
 def inputInRangeLoop(prompt, min_val, max_val):
@@ -50,7 +63,7 @@ else:
 
 # Read the CSV and get all unique subjects
 subjects_set = set()
-with open('input.csv', newline='', encoding='utf-8') as infile:
+with open(csv_path, newline='', encoding='utf-8') as infile:
     reader = csv.reader(infile)
     next(reader)  # Skip header
     for row in reader:
@@ -108,7 +121,7 @@ if input("Do you want to rename any subjects? (y/n)\n> ").lower() == 'y':
         else: print("Invalid number, try again.")
 
 # Writing the new CSV
-with open('input.csv', newline='', encoding='utf-8') as infile, \
+with open(csv_path, newline='', encoding='utf-8') as infile, \
      open('output.csv', 'w', newline='', encoding='utf-8') as outfile: 
     reader = csv.reader(infile)
     writer = csv.writer(outfile)
