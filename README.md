@@ -19,12 +19,10 @@ Current features:
 1. Download the latest release from the repository
 2. Ensure `main.py` and `csv_to_ical.py` are in the same directory
 3. Run `main.py`
-   
-### Part 3
+<details>
+<summary>Alternative Part 2</summary>
+<br>
 
-Once your `.isc` file is generated, you have three options for how to import it into iCalendar:
-
-### Alternative to Part 2
 #### Organising events
 In the case that you cannot/don't want to run the Python script, RegEx (regular expression) can be used to format the `.csv` file.
 Note that this method doesn't have as much customisability as the script, and will not recieve updates or new features.
@@ -51,6 +49,12 @@ Replace the first line (header line) with:
 Go to [this link](https://csv-to-ical.chimbori.com) and convert the `.csv` file, then download the `.ics` file.
 Note that for this converter to work, the dates must be in mm/dd/yyyy format, which is covered by the RegEx string.
 The Python script has a commented section that converts the date format to US format. This will break the `.ics` file, but the `.csv` file will be usable in the online converter.
+
+</details>
+   
+### Part 3
+
+Once your `.isc` file is generated, you have three options for how to import it into iCalendar:
 
 ## Importing events
 ### Method 1: Shortcut method
