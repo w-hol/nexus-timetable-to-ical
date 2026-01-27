@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Timetable to iCal</title>
+    <style>
+        /* Bulma CSS Framework - Inline */
+        * { box-sizing: border-box; }
+        html { font-family: BlinkMacSystemFont, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 16px; -moz-osx-font-smoothing: grayscale; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+        body { background-color: #f5f5f5; color: #363636; font-size: 1em; font-weight: 400; line-height: 1.5; margin: 0; padding: 0; }
+        h1, h2, h3, h4, h5, h6 { color: inherit; font-weight: 600; line-height: 1.125; margin-bottom: 1rem; margin-top: 0; }
+        h1 { font-size: 2.5rem; }
+        h2 { font-size: 2rem; }
+        h3 { font-size: 1.75rem; }
+        h4 { font-size: 1.5rem; }
+        h5 { font-size: 1.25rem; }
+        h6 { font-size: 1rem; }
+        
+        .container { flex-grow: 1; margin: 0 auto; position: relative; width: auto; max-width: 960px; margin-left: auto; margin-right: auto; padding: 0 20px; }
+        .container.is-fullhd { max-width: 1408px; }
+        
+        .section { padding: 3rem 1.5rem; }
+        .section.is-small { padding: 1.5rem; }
+        
+        .box { background-color: white; border-radius: 6px; box-shadow: 0 0.5em 1em rgba(10,10,10,0.1); color: inherit; display: block; padding: 1.5rem; }
+        
+        .field { margin-bottom: 1rem; }
+        .field:last-child { margin-bottom: 0; }
+        
+        .label { color: #363636; display: block; font-size: 1rem; font-weight: 600; margin-bottom: 0.5em; }
+        
+        .control { position: relative; text-align: left; }
+        .control input, .control textarea, .control select { background-color: white; border: 1px solid #dbdbdb; border-radius: 4px; color: #363636; display: block; font-family: inherit; font-size: 1em; max-width: 100%; padding: 0.625em; width: 100%; }
+        .control input:focus, .control textarea:focus, .control select:focus { border-color: #3273dc; outline: none; }
+        
+        .button { background-color: white; border: 1px solid #dbdbdb; border-radius: 4px; color: #363636; cursor: pointer; justify-content: center; padding: 0.625em 1em; text-align: center; white-space: nowrap; font-size: 1rem; font-weight: 600; }
+        .button:hover { border-color: #b5b5b5; color: #363636; }
+        .button.is-primary { background-color: #3273dc; border-color: #3273dc; color: white; }
+        .button.is-primary:hover { background-color: #2366d1; border-color: #2366d1; }
+        .button.is-success { background-color: #48c774; border-color: #48c774; color: white; }
+        .button.is-success:hover { background-color: #3aa373; border-color: #3aa373; }
+        
+        .columns { margin-left: -0.75rem; margin-right: -0.75rem; margin-top: -0.75rem; }
+        .columns:last-child { margin-bottom: -0.75rem; }
+        .column { padding: 0.75rem; }
+        .column.is-half { flex: none; width: 50%; }
+        .column.is-third { flex: none; width: 33.3333%; }
+        .column.is-two-thirds { flex: none; width: 66.6666%; }
+        
+        @media screen and (max-width: 768px) {
+            .column.is-half, .column.is-third, .column.is-two-thirds { flex: none; width: 100%; }
+        }
+        
+        .is-flex { display: flex; }
+        .is-flex-direction-column { flex-direction: column; }
+        .is-justify-content-space-between { justify-content: space-between; }
+        
+        .message { background-color: #f5f5f5; border-left: 5px solid #dbdbdb; color: #363636; margin-bottom: 1rem; padding: 1.25rem 1.5rem; }
+        .message.is-info { background-color: #f0f7ff; border-left-color: #3273dc; }
+        .message.is-success { background-color: #f0fdf4; border-left-color: #48c774; }
+        .message.is-warning { background-color: #fffbf0; border-left-color: #ffdd57; }
+        .message.is-danger { background-color: #fff5f7; border-left-color: #f14668; }
+        
+        .message-body { padding: 1rem; }
+        
+        .table { background-color: white; color: #363636; width: 100%; border-collapse: collapse; }
+        .table td, .table th { border: 1px solid #dbdbdb; padding: 0.75em; }
+        .table th { background-color: #f5f5f5; color: #363636; text-align: left; }
+        
+        .tabs { border-bottom: 1px solid #dbdbdb; display: flex; margin-bottom: 1rem; }
+        .tabs a { border-bottom: 3px solid transparent; color: #363636; padding: 0.75em 1em; text-decoration: none; }
+        .tabs a.is-active { border-bottom-color: #3273dc; color: #3273dc; }
+        .tabs a:hover { border-bottom-color: #b5b5b5; }
+        
+        .tab-content { display: none; }
+        .tab-content.is-active { display: block; }
+        
+        .tag { align-items: center; background-color: #f5f5f5; border-radius: 4px; color: #363636; display: inline-flex; font-size: 0.875rem; height: 2em; justify-content: center; line-height: 1.5; padding-left: 0.75em; padding-right: 0.75em; white-space: nowrap; }
+        .tag.is-primary { background-color: #3273dc; color: white; }
+        
+        .is-hidden { display: none !important; }
+        .mt-3 { margin-top: 1.5rem; }
+        .mb-3 { margin-bottom: 1.5rem; }
+        .p-3 { padding: 1.5rem; }
+    </style>
+</head>
+<body>
+    <section class="section">
+        <div class="container">
+            <h1>Nexus Timetable to iCal Converter</h1>
+            <p>Convert your Nexus school timetable CSV to an iCalendar file with custom formatting options.</p>
+            
+            <!-- Main Content Tabs -->
+            <div class="tabs mt-3">
+                <a class="tab-link is-active" data-tab="upload">1. Upload CSV</a>
+                <a class="tab-link" data-tab="settings">2. Settings</a>
+                <a class="tab-link" data-tab="preview">3. Preview & Download</a>
+            </div>
+
+            <!-- Tab 1: Upload CSV -->
+            <div id="upload" class="tab-content is-active">
+                <div class="box">
+                    <h2>Upload Timetable CSV</h2>
+                    <p>Export your timetable from Nexus and upload the CSV file here.</p>
+                    
+                    <div class="field">
+                        <label class="label">Select CSV File</label>
+                        <div class="control">
+                            <input type="file" id="csvFile" accept=".csv" onchange="handleCsvUpload(event)">
+                        </div>
+                    </div>
+                    
+                    <div id="uploadMessage" class="message is-hidden mt-3">
+                        <div class="message-body" id="uploadMessageText"></div>
+                    </div>
+                    
+                    <div id="dateRangeInfo" class="box is-hidden mt-3">
+                        <h4>Detected Date Range</h4>
+                        <p><strong>Earliest date:</strong> <span id="earliestDate"></span></p>
+                        <p><strong>Latest date:</strong> <span id="latestDate"></span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Settings -->
+            <div id="settings" class="tab-content is-hidden">
+                <div class="box">
+                    <h2>Customization Settings</h2>
+                    
+                    <div class="field">
+                        <label class="label">Year Level</label>
+                        <div class="control">
+                            <select id="yearLevel" onchange="saveSettings()">
+                                <option value="">Select year level...</option>
+                                <option value="7">Year 7</option>
+                                <option value="8">Year 8</option>
+                                <option value="9">Year 9</option>
+                                <option value="10">Year 10</option>
+                                <option value="11">Year 11</option>
+                                <option value="12">Year 12</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="columns">
+                        <div class="column is-half">
+                            <div class="field">
+                                <label class="label">Start Date</label>
+                                <div class="control">
+                                    <input type="date" id="startDate" onchange="saveSettings()">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="column is-half">
+                            <div class="field">
+                                <label class="label">End Date</label>
+                                <div class="control">
+                                    <input type="date" id="endDate" onchange="saveSettings()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">School Term Number</label>
+                        <div class="control">
+                            <select id="termNumber" onchange="saveSettings()">
+                                <option value="">Select term...</option>
+                                <option value="1">Term 1</option>
+                                <option value="2">Term 2</option>
+                                <option value="3">Term 3</option>
+                                <option value="4">Term 4</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Event Name Format</label>
+                        <div class="control">
+                            <label style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                                <input type="radio" name="nameFormat" value="fullName" onchange="saveSettings(); toggleRenameFields()" style="margin-right: 0.5rem;"> Full Class Name
+                            </label>
+                            <label style="display: flex; align-items: center;">
+                                <input type="radio" name="nameFormat" value="classCode" onchange="saveSettings(); toggleRenameFields()" style="margin-right: 0.5rem;"> Class Code Only
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Rename Mappings Section -->
+                    <div id="renameSection" class="is-hidden mt-3">
+                        <h4>Subject Rename Mappings (Optional)</h4>
+                        <p style="font-size: 0.9rem; color: #666;">Leave blank to use original names. Example: "Biology 10A" → "Bio"</p>
+                        <div id="renameMappings" class="mt-3"></div>
+                        <button class="button is-small mt-3" onclick="addRenameMapping()">+ Add Another Mapping</button>
+                    </div>
+
+                    <button class="button is-success mt-3" onclick="goToNextTab('preview')">Continue to Preview →</button>
+                </div>
+            </div>
+
+            <!-- Tab 3: Preview & Download -->
+            <div id="preview" class="tab-content is-hidden">
+                <div class="box">
+                    <h2>Preview & Download</h2>
+                    
+                    <div id="previewMessage" class="message is-hidden">
+                        <div class="message-body" id="previewMessageText"></div>
+                    </div>
+
+                    <div id="eventPreview" class="is-hidden">
+                        <h4>Events Summary</h4>
+                        <p><strong id="eventCount">0</strong> events will be included in your calendar.</p>
+                        
+                        <table class="table is-striped mt-3">
+                            <thead>
+                                <tr>
+                                    <th>Event Name</th>
+                                    <th>Date & Time</th>
+                                    <th>Location</th>
+                                </tr>
+                            </thead>
+                            <tbody id="eventTableBody">
+                            </tbody>
+                        </table>
+
+                        <button class="button is-primary is-large mt-3" onclick="downloadCalendar()">
+                            📥 Download Calendar File
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="ics.js"></script>
+    <script>
+        // Global state
+        let csvData = [];
+        let events = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setupTabNavigation();
+            loadSettings();
+        });
+
+        // Tab navigation
+        function setupTabNavigation() {
+            document.querySelectorAll('.tab-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tabName = this.getAttribute('data-tab');
+                    
+                    // Update active tab link
+                    document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('is-active'));
+                    this.classList.add('is-active');
+                    
+                    // Update active tab content
+                    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('is-active'));
+                    document.getElementById(tabName).classList.add('is-active');
+                    
+                    // Handle special actions
+                    if (tabName === 'preview') {
+                        generatePreview();
+                    }
+                });
+            });
+        }
+
+        function goToNextTab(tabName) {
+            document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('is-active'));
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('is-active');
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('is-active'));
+            document.getElementById(tabName).classList.add('is-active');
+            
+            if (tabName === 'preview') {
+                generatePreview();
+            }
+        }
+
+        // CSV Handling
+        function handleCsvUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    csvData = parseCSV(e.target.result);
+                    detectAndSetDateRange();
+                    showMessage('uploadMessage', 'CSV uploaded successfully!', 'is-success');
+                    document.getElementById('dateRangeInfo').classList.remove('is-hidden');
+                    
+                    // Enable next tab
+                    document.querySelector('[data-tab="settings"]').style.pointerEvents = 'auto';
+                } catch (error) {
+                    showMessage('uploadMessage', 'Error parsing CSV: ' + error.message, 'is-danger');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSV(text) {
+            const lines = text.trim().split('\n');
+            if (lines.length < 2) throw new Error('CSV must have at least a header row');
+            
+            // Parse header
+            const header = lines[0].split(',').map(h => h.trim());
+            
+            // Find column indices
+            const startDateIdx = header.findIndex(h => h.toLowerCase().includes('start') && h.toLowerCase().includes('date'));
+            const endDateIdx = header.findIndex(h => h.toLowerCase().includes('end') && h.toLowerCase().includes('date'));
+            const startTimeIdx = header.findIndex(h => h.toLowerCase().includes('start') && h.toLowerCase().includes('time'));
+            const endTimeIdx = header.findIndex(h => h.toLowerCase().includes('end') && h.toLowerCase().includes('time'));
+            const nameIdx = header.findIndex(h => h.toLowerCase().includes('name') || h.toLowerCase().includes('class'));
+            const locationIdx = header.findIndex(h => h.toLowerCase().includes('location') || h.toLowerCase().includes('classroom') || h.toLowerCase().includes('room'));
+            
+            if (startDateIdx === -1 || startTimeIdx === -1 || nameIdx === -1) {
+                throw new Error('CSV must contain Start Date, Start Time, and Name columns');
+            }
+
+            const rows = [];
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim() === '') continue;
+                
+                const cols = lines[i].split(',').map(c => c.trim());
+                rows.push({
+                    startDate: cols[startDateIdx],
+                    startTime: cols[startTimeIdx],
+                    endDate: cols[endDateIdx] || cols[startDateIdx],
+                    endTime: cols[endTimeIdx] || cols[startTimeIdx],
+                    name: cols[nameIdx],
+                    location: locationIdx >= 0 ? cols[locationIdx] : ''
+                });
+            }
+
+            return rows;
+        }
+
+        function detectAndSetDateRange() {
+            if (csvData.length === 0) return;
+
+            const dates = csvData.map(row => new Date(row.startDate));
+            const minDate = new Date(Math.min(...dates));
+            const maxDate = new Date(Math.max(...dates));
+
+            document.getElementById('earliestDate').textContent = minDate.toLocaleDateString();
+            document.getElementById('latestDate').textContent = maxDate.toLocaleDateString();
+
+            document.getElementById('startDate').value = formatDateForInput(minDate);
+            document.getElementById('endDate').value = formatDateForInput(maxDate);
+
+            saveSettings();
+        }
+
+        function formatDateForInput(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Settings Management
+        function saveSettings() {
+            const settings = {
+                yearLevel: document.getElementById('yearLevel').value,
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value,
+                termNumber: document.getElementById('termNumber').value,
+                nameFormat: document.querySelector('input[name="nameFormat"]:checked')?.value || 'fullName',
+                renameMappings: getRenameMappings()
+            };
+            localStorage.setItem('timetableSettings', JSON.stringify(settings));
+        }
+
+        function loadSettings() {
+            const settings = JSON.parse(localStorage.getItem('timetableSettings') || '{}');
+            
+            if (settings.yearLevel) document.getElementById('yearLevel').value = settings.yearLevel;
+            if (settings.startDate) document.getElementById('startDate').value = settings.startDate;
+            if (settings.endDate) document.getElementById('endDate').value = settings.endDate;
+            if (settings.termNumber) document.getElementById('termNumber').value = settings.termNumber;
+            if (settings.nameFormat) document.querySelector(`input[name="nameFormat"][value="${settings.nameFormat}"]`).checked = true;
+            
+            // Restore rename mappings
+            if (settings.renameMappings && settings.renameMappings.length > 0) {
+                document.getElementById('renameMappings').innerHTML = '';
+                settings.renameMappings.forEach(mapping => {
+                    addRenameMapping(mapping.original, mapping.renamed);
+                });
+            } else {
+                addRenameMapping();
+            }
+
+            toggleRenameFields();
+        }
+
+        function toggleRenameFields() {
+            const format = document.querySelector('input[name="nameFormat"]:checked')?.value;
+            const renameSection = document.getElementById('renameSection');
+            
+            if (format === 'fullName') {
+                renameSection.classList.remove('is-hidden');
+            } else {
+                renameSection.classList.add('is-hidden');
+            }
+        }
+
+        function addRenameMapping(original = '', renamed = '') {
+            const container = document.getElementById('renameMappings');
+            const mappingId = 'mapping-' + Date.now() + Math.random();
+            
+            const html = `
+                <div class="columns" style="gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <div class="column">
+                        <input type="text" class="rename-original" placeholder="Original name (e.g., Biology 10A)" value="${original}" onchange="saveSettings()">
+                    </div>
+                    <div class="column">
+                        <input type="text" class="rename-renamed" placeholder="New name (e.g., Bio)" value="${renamed}" onchange="saveSettings()">
+                    </div>
+                    <div class="column" style="flex: 0 0 auto;">
+                        <button class="button is-danger is-small" onclick="this.parentElement.parentElement.remove(); saveSettings();">✕</button>
+                    </div>
+                </div>
+            `;
+            
+            container.insertAdjacentHTML('beforeend', html);
+        }
+
+        function getRenameMappings() {
+            const mappings = [];
+            document.querySelectorAll('#renameMappings .columns').forEach(row => {
+                const original = row.querySelector('.rename-original').value.trim();
+                const renamed = row.querySelector('.rename-renamed').value.trim();
+                if (original && renamed) {
+                    mappings.push({ original, renamed });
+                }
+            });
+            return mappings;
+        }
+
+        // Event Generation
+        function generatePreview() {
+            if (csvData.length === 0) {
+                showMessage('previewMessage', 'Please upload a CSV file first.', 'is-warning');
+                return;
+            }
+
+            const startDate = new Date(document.getElementById('startDate').value);
+            const endDate = new Date(document.getElementById('endDate').value);
+            const nameFormat = document.querySelector('input[name="nameFormat"]:checked')?.value || 'fullName';
+            const renameMappings = getRenameMappings();
+
+            events = [];
+
+            csvData.forEach(row => {
+                const eventDate = new Date(row.startDate);
+                
+                // Filter by date range
+                if (eventDate < startDate || eventDate > endDate) return;
+
+                // Parse times
+                const startDateTime = parseDateTime(row.startDate, row.startTime);
+                const endDateTime = parseDateTime(row.endDate, row.endTime);
+
+                // Determine event name
+                let eventName = row.name;
+                if (nameFormat === 'classCode') {
+                    // Extract class code (usually last part or in parentheses)
+                    const match = row.name.match(/\(([^)]+)\)|([A-Z0-9]+)$/);
+                    eventName = match ? match[1] || match[2] : row.name;
+                } else if (nameFormat === 'fullName') {
+                    // Apply rename mappings
+                    renameMappings.forEach(mapping => {
+                        eventName = eventName.replace(mapping.original, mapping.renamed);
+                    });
+                }
+
+                events.push({
+                    title: eventName,
+                    description: `Year Level: ${document.getElementById('yearLevel').value || 'N/A'}\nTerm: ${document.getElementById('termNumber').value || 'N/A'}`,
+                    location: row.location,
+                    start: startDateTime,
+                    end: endDateTime,
+                    date: eventDate
+                });
+            });
+
+            // Sort by date
+            events.sort((a, b) => a.start - b.start);
+
+            // Display preview
+            document.getElementById('eventCount').textContent = events.length;
+            
+            const tableBody = document.getElementById('eventTableBody');
+            tableBody.innerHTML = '';
+            
+            events.slice(0, 10).forEach(event => {
+                const row = `
+                    <tr>
+                        <td>${event.title}</td>
+                        <td>${event.start.toLocaleString()}</td>
+                        <td>${event.location}</td>
+                    </tr>
+                `;
+                tableBody.insertAdjacentHTML('beforeend', row);
+            });
+
+            if (events.length > 10) {
+                tableBody.insertAdjacentHTML('beforeend', `<tr><td colspan="3" style="text-align: center; color: #999;">... and ${events.length - 10} more events</td></tr>`);
+            }
+
+            document.getElementById('eventPreview').classList.remove('is-hidden');
+            showMessage('previewMessage', `Successfully processed ${events.length} events!`, 'is-success');
+        }
+
+        function parseDateTime(dateStr, timeStr) {
+            const dateParts = dateStr.split('/').map(p => parseInt(p));
+            const timeParts = timeStr.split(':').map(p => parseInt(p));
+            
+            // Assume format DD/MM/YYYY HH:MM
+            const date = new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1], 0);
+            return date;
+        }
+
+        function downloadCalendar() {
+            if (events.length === 0) {
+                showMessage('previewMessage', 'No events to download.', 'is-warning');
+                return;
+            }
+
+            ics.events = events;
+            ics.download('timetable.ics');
+            
+            showMessage('previewMessage', 'Calendar downloaded successfully!', 'is-success');
+        }
+
+        // Utilities
+        function showMessage(elementId, text, className) {
+            const element = document.getElementById(elementId);
+            const textElement = document.getElementById(elementId + 'Text');
+            
+            element.classList.remove('is-info', 'is-success', 'is-warning', 'is-danger', 'is-hidden');
+            element.classList.add(className);
+            textElement.textContent = text;
+        }
+    </script>
+</body>
+</html>
