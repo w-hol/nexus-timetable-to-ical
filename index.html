@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Timetable to iCal</title>
+    <link rel="stylesheet" href="bulma.css">
+    <style>
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.is-active {
+            display: block;
+        }
+
+        /* Visually disable tabs when no CSV is loaded */
+        .tabs.is-toggle li.tab-link.is-disabled a {
+            pointer-events: none;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        /* Calendar grid styling */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: auto repeat(7, 1fr);
+            gap: 4px;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        .calendar-week-label {
+            text-align: center;
+            font-weight: bold;
+            padding: 8px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #7a7a7a;
+        }
+        .calendar-day-header {
+            text-align: center;
+            font-weight: bold;
+            padding: 8px;
+            font-size: 0.875rem;
+        }
+        .calendar-day {
+            width: 100%;
+            aspect-ratio: 1;
+            padding: 0;
+            font-size: 0.875rem;
+        }
+        .calendar-day.empty {
+            border: none;
+            background: transparent;
+            cursor: default;
+        }
+        .month-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <section class="section">
+        <div class="container">
+            <h1 class="title is-1">Nexus Timetable to iCal Converter</h1>
+            
+            <!-- Main Content Tabs -->
+            <div class="tabs is-fullwidth is-medium is-toggle">
+                <ul>
+                    <li class="tab-link is-active" data-tab="upload"><a>Upload CSV</a></li>
+                    <li class="tab-link" data-tab="settings"><a>Settings</a></li>
+                    <li class="tab-link" data-tab="preview"><a>Preview & Download</a></li>
+                </ul>
+            </div>
+
+            <!-- Tab 1: Upload CSV -->
+            <div id="upload" class="tab-content is-active box">
+                <div class="mb-5">
+                    <h2 class="title is-3">Upload Timetable CSV</h2>
+                </div>
+
+                <!-- Guide: Exporting the Timetable -->
+                <div id="uploadGuide" class="box mt-3">
+                    <div class="content">
+                        <h3 class="title is-4">How to export your timetable</h3>
+                        <ol>
+                            <li>Open the Nexus website, and navigate to the "calendar" tab from the top bar</li>
+                            <li>Click export in the top right</li>
+                            <li>Select "Timetable classes" then "Download CSV"</li>
+                            <li>Save the file somewhere you will remember it</li>
+                            <li>Upload the file below</li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <div class="field">
+                    <label class="label">Select CSV File</label>
+                    <div class="control">
+                        <input type="file" id="csvFile" accept=".csv" onchange="handleCsvUpload(event)">
+                    </div>
+                </div>
+                
+                <div id="uploadMessage" class="message is-hidden mt-3">
+                    <div class="message-body" id="uploadMessageText"></div>
+                </div>
+                
+                <div id="dateRangeInfo" class="box is-hidden mt-3">
+                    <p><strong>Date Range:</strong> <span id="earliestDate"></span> to <span id="latestDate"></span></p>
+                    <p><strong>Total Events Loaded:</strong> <span id="totalEventsLoaded"></span></p>
+                </div>
+
+                <button id="continueToSettingsBtn" class="button is-success is-dark is-fullwidth mt-5 is-hidden" onclick="goToNextTab('settings')">Continue to Settings</button>
+            </div>
+
+            <!-- Tab 2: Settings -->
+            <div id="settings" class="tab-content box">
+                <div class="mb-5">
+                    <h2 class="title is-3">Customization Settings</h2>
+                </div>
+                
+                <div id="settingsMessage" class="message is-hidden mt-3">
+                    <div class="message-body" id="settingsMessageText"></div>
+                </div>
+                
+                <!-- Date Selection Calendar -->
+                <div class="field">
+                    <label class="label">Select Dates to Include</label>
+                    <div id="dateCalendar" class="box">
+                        <!-- Month Navigation -->
+                        <div class="month-nav">
+                            <button class="button is-medium" onclick="previousMonth()">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" style="height: 1.5rem; width: 1.5rem;"><path fill="white" d="M73.4 297.4C60.9 309.9 60.9 330.2 73.4 342.7L233.4 502.7C245.9 515.2 266.2 515.2 278.7 502.7C291.2 490.2 291.2 469.9 278.7 457.4L173.3 352L544 352C561.7 352 576 337.7 576 320C576 302.3 561.7 288 544 288L173.3 288L278.7 182.6C291.2 170.1 291.2 149.8 278.7 137.3C266.2 124.8 245.9 124.8 233.4 137.3L73.4 297.3z"/></svg>
+                            </button>
+                            <h3 class="title is-5 mb-0" id="calendarMonthTitle">January 2026</h3>
+                            <button class="button is-medium" onclick="nextMonth()">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" style="height: 1.5rem; width: 1.5rem;"><path fill="white" d="M566.6 342.6C579.1 330.1 579.1 309.8 566.6 297.3L406.6 137.3C394.1 124.8 373.8 124.8 361.3 137.3C348.8 149.8 348.8 170.1 361.3 182.6L466.7 288L96 288C78.3 288 64 302.3 64 320C64 337.7 78.3 352 96 352L466.7 352L361.3 457.4C348.8 469.9 348.8 490.2 361.3 502.7C373.8 515.2 394.1 515.2 406.6 502.7L566.6 342.7z"/></svg>
+                            </button>
+                        </div>
+                        
+                        <!-- Calendar Grid -->
+                        <div id="calendarGrid">
+                            <p class="has-text-grey">Calendar will appear here after uploading a CSV file.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">Custom Event Names</label>
+                    <div class="control">
+                        <label class="checkbox">
+                            <input type="checkbox" id="customNamesToggle" onchange="saveSettings(); toggleRenameFields()">
+                            Enable custom naming
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Custom Naming Section -->
+                <div id="renameSection" class="mt-5 is-hidden">
+                    <div class="table-container mt-3">
+                        <table class="table is-striped is-fullwidth">
+                            <thead>
+                                <tr>
+                                    <th>Class Name</th>
+                                    <th>Custom Name</th>
+                                </tr>
+                            </thead>
+                            <tbody id="renameMappings">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="level mt-5">
+                    <div class="level-left">
+                        <div class="level-item">
+                            <button class="button is-danger is-dark" onclick="resetCustomNames()">Reset Custom Names</button>
+                        </div>
+                    </div>
+                    <div class="level-right">
+                        <div class="level-item">
+                            <button class="button is-success is-dark" onclick="goToSettingsOrPreview()">Continue to Preview</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Preview & Download -->
+            <div id="preview" class="tab-content box">
+                <div class="mb-5">
+                    <h2 class="title is-3">Preview & Download</h2>
+                </div>
+                
+                <div id="previewMessage" class="message is-hidden mt-3">
+                    <div class="message-body" id="previewMessageText"></div>
+                </div>
+
+                <!-- Guide: Importing the Events -->
+                <div id="downloadGuide" class="box mt-3">
+                    <div class="content">
+                        <h3 class="title is-4">Importing the Events</h3>
+                        <h4 class="title is-5">Outlook for Mac</h4>
+                        <ol>
+                            <li>Make sure that Outlook is in legacy mode, by going to File &gt; Legacy Outlook, and make sure it is enabled</li>
+                            <li>In the bottom left navigation bar, click the calendar icon</li>
+                            <li>Drag and drop the .ics file from finder into the main calendar grid</li>
+                        </ol>
+                        <h4 class="title is-5">Outlook for Windows</h4>
+                        <ol>
+                            <li>On the left navigation bar, click the calendar icon</li>
+                            <li>Click File &gt; Open &amp; Export &gt; Open Calendar &gt; select your .ics file and click ok</li>
+                        </ol>
+                        <h4 class="title is-5">iCalendar</h4>
+                        <ol>
+                            <li>Click File &gt; Import..., select your .ics file and click import</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div id="eventPreview" class="is-hidden">
+                    <p><strong id="eventCount">0</strong> events will be included in your calendar.</p>
+                    
+                    <table class="table is-striped is-fullwidth mt-3">
+                        <thead>
+                            <tr>
+                                <th>Event Name</th>
+                                <th>Start Date & Time</th>
+                                <th>End Date & Time</th>
+                                <th>Location</th>
+                            </tr>
+                        </thead>
+                        <tbody id="eventTableBody">
+                        </tbody>
+                    </table>
+
+                    <div class="level mt-5">
+                        <div class="level-left">
+                            <div class="level-item">
+                                <button class="button is-danger is-dark" onclick="goToNextTab('settings')">Go Back</button>
+                            </div>
+                        </div>
+                        <div class="level-right">
+                            <div class="level-item">
+                                <button class="button is-success is-dark" onclick="downloadCalendar()">Download Calendar File</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="ics.js"></script>
+    <script src="term-dates.js"></script>
+    <script>
+        // Global state
+        let csvData = [];
+        let events = [];
+        let customNames = {}; // Store custom class name edits
+        let currentCalendarMonth = new Date(); // Track currently displayed month
+        let selectedDates = new Set(); // Track selected dates (YYYY-MM-DD format)
+        let minEventDate = null; // Earliest date in CSV
+        let maxEventDate = null; // Latest date in CSV
+        let selectedDateRangeStart = null; // Start of selected range
+        let selectedDateRangeEnd = null; // End of selected range
+        let hoverPreviewEnd = null; // For hover preview before confirming end
+
+        // Helper function to get term and week number for a date
+        function getTermWeek(date) {
+            // Normalize date to start of day for comparison
+            const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            
+            for (const term of TERM_DATES) {
+                // Parse ISO date strings and convert to local midnight
+                const [startYear, startMonth, startDay] = term.startDate.split('-').map(Number);
+                const [endYear, endMonth, endDay] = term.endDate.split('-').map(Number);
+                const termStart = new Date(startYear, startMonth - 1, startDay);
+                const termEnd = new Date(endYear, endMonth - 1, endDay);
+                
+                if (checkDate >= termStart && checkDate <= termEnd) {
+                    // Calculate week number within term
+                    const daysDiff = Math.floor((checkDate - termStart) / (1000 * 60 * 60 * 24));
+                    const weekNum = Math.floor(daysDiff / 7) + 1;
+                    return { term: term.term, week: weekNum, label: `T${term.term}W${weekNum}` };
+                }
+            }
+            return null; // Date is not in any term
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setupTabNavigation();
+            loadSettings();
+            updateContinueButtonVisibility();
+            // Set initial tab state
+            setTimeout(function() {
+                updateTabDisabledState();
+            }, 100);
+        });
+
+        // Tab navigation
+        function setupTabNavigation() {
+            document.querySelectorAll('.tab-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tabName = this.getAttribute('data-tab');
+                    switchTab(tabName);
+                });
+            });
+        }
+
+        function switchTab(tabName) {
+            // Prevent navigation to settings/preview if no CSV is loaded
+            if ((tabName === 'settings' || tabName === 'preview') && csvData.length === 0) {
+                return;
+            }
+
+            // Update active tab link
+            document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('is-active'));
+            document.querySelector(`.tab-link[data-tab="${tabName}"]`).classList.add('is-active');
+            
+            // Update active tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('is-active'));
+            document.getElementById(tabName).classList.add('is-active');
+            
+            // Handle special actions
+            if (tabName === 'preview') {
+                generatePreview();
+            }
+        }
+
+        function goToNextTab(tabName) {
+            switchTab(tabName);
+        }
+
+        function goToSettingsOrPreview() {
+            if (csvData.length === 0) {
+                return;
+            }
+            goToNextTab('preview');
+        }
+
+        function updateContinueButtonVisibility() {
+            const btn = document.getElementById('continueToSettingsBtn');
+            if (!btn) return;
+            if (csvData && csvData.length > 0) {
+                btn.classList.remove('is-hidden');
+            } else {
+                btn.classList.add('is-hidden');
+            }
+        }
+
+        function updateTabDisabledState() {
+            const hasFile = csvData && csvData.length > 0;
+            document.querySelectorAll('.tab-link').forEach(link => {
+                const tabName = link.getAttribute('data-tab');
+                const anchor = link.querySelector('a');
+                if (tabName === 'settings' || tabName === 'preview') {
+                    if (!hasFile) {
+                        link.classList.add('is-disabled');
+                        anchor.setAttribute('aria-disabled', 'true');
+                        anchor.classList.add('has-text-grey');
+                    } else {
+                        link.classList.remove('is-disabled');
+                        anchor.removeAttribute('aria-disabled');
+                        anchor.classList.remove('has-text-grey');
+                    }
+                }
+            });
+        }
+
+        // Calendar functions
+        function renderCalendar() {
+            const year = currentCalendarMonth.getFullYear();
+            const month = currentCalendarMonth.getMonth();
+            
+            // Update title
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                              'July', 'August', 'September', 'October', 'November', 'December'];
+            document.getElementById('calendarMonthTitle').textContent = `${monthNames[month]} ${year}`;
+            
+            // Get dates with events
+            const datesWithEvents = new Set();
+            csvData.forEach(row => {
+                const date = parseDateOnly(row.startDate);
+                const dateStr = formatDateForStorage(date);
+                datesWithEvents.add(dateStr);
+            });
+            
+            // Update navigation button states
+            updateCalendarNavigationButtons();
+            
+            // Build calendar grid
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startingDayOfWeek = firstDay.getDay(); // 0 = Sunday
+            const daysInMonth = lastDay.getDate();
+
+            // Build preview range for hover state
+            const previewRange = new Set();
+            if (selectedDateRangeStart && hoverPreviewEnd && !selectedDateRangeEnd) {
+                let start = selectedDateRangeStart;
+                let end = new Date(hoverPreviewEnd);
+                if (end < start) {
+                    [start, end] = [end, start];
+                }
+                const cursor = new Date(start);
+                while (cursor <= end) {
+                    previewRange.add(formatDateForStorage(cursor));
+                    cursor.setDate(cursor.getDate() + 1);
+                }
+            }
+            
+            let html = '<div class="calendar-grid">';
+            
+            // Empty cell for week label header
+            html += '<div class="calendar-day-header"></div>';
+            
+            // Day headers
+            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayHeaders.forEach(day => {
+                html += `<div class="calendar-day-header">${day}</div>`;
+            });
+            
+            // Add week label for first row (calculate based on the Sunday of that week)
+            const firstDayOfMonth = new Date(year, month, 1);
+            // Calculate what Sunday this week started on
+            const firstWeekSunday = new Date(year, month, 1 - startingDayOfWeek);
+            const firstDayTermWeek = getTermWeek(firstWeekSunday);
+            let currentWeekLabel = firstDayTermWeek ? firstDayTermWeek.label : '—';
+            html += `<div class="calendar-week-label">${currentWeekLabel}</div>`;
+            
+            // Empty cells before first day
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                html += '<div class="calendar-day empty"></div>';
+            }
+            
+            // Days of the month
+            let dayOfWeek = startingDayOfWeek;
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                const dateStr = formatDateForStorage(date);
+                const hasEvents = datesWithEvents.has(dateStr);
+                const isSelected = selectedDates.has(dateStr);
+                
+                let classes = 'button calendar-day';
+                if (isSelected && hasEvents) {
+                    classes += ' is-primary is-dark';
+                } else if (isSelected) {
+                    classes += ' is-success is-dark';
+                } else if (hasEvents) {
+                    classes += ' is-info is-dark';
+                }
+                
+                html += `<button class="${classes}" data-date="${dateStr}" onclick="toggleDateSelection('${dateStr}')">${day}</button>`;
+                
+                dayOfWeek++;
+                // If we've reached Saturday (6) and there are more days, add new week label
+                if (dayOfWeek > 6 && day < daysInMonth) {
+                    dayOfWeek = 0;
+                    // Calculate the Sunday of the next week
+                    const nextWeekSunday = new Date(year, month, day + 1);
+                    const termWeek = getTermWeek(nextWeekSunday);
+                    currentWeekLabel = termWeek ? termWeek.label : '—';
+                    html += `<div class="calendar-week-label">${currentWeekLabel}</div>`;
+                }
+            }
+            
+            html += '</div>';
+            document.getElementById('calendarGrid').innerHTML = html;
+        }
+
+        function formatDateForStorage(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function previousMonth() {
+            const prevMonth = new Date(currentCalendarMonth.getFullYear(), currentCalendarMonth.getMonth() - 1, 1);
+            if (minEventDate && prevMonth < new Date(minEventDate.getFullYear(), minEventDate.getMonth(), 1)) {
+                return; // Don't go before earliest event month
+            }
+            currentCalendarMonth.setMonth(currentCalendarMonth.getMonth() - 1);
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            const nextMonth = new Date(currentCalendarMonth.getFullYear(), currentCalendarMonth.getMonth() + 1, 1);
+            if (maxEventDate && nextMonth > new Date(maxEventDate.getFullYear(), maxEventDate.getMonth(), 1)) {
+                return; // Don't go after latest event month
+            }
+            currentCalendarMonth.setMonth(currentCalendarMonth.getMonth() + 1);
+            renderCalendar();
+        }
+
+        function updateCalendarNavigationButtons() {
+            // Check if we're at min/max boundaries
+            const currentMonth = new Date(currentCalendarMonth.getFullYear(), currentCalendarMonth.getMonth(), 1);
+            
+            const prevButton = document.querySelector('button[onclick="previousMonth()"]');
+            const nextButton = document.querySelector('button[onclick="nextMonth()"]');
+            
+            if (minEventDate) {
+                const minMonth = new Date(minEventDate.getFullYear(), minEventDate.getMonth(), 1);
+                if (currentMonth <= minMonth) {
+                    prevButton.disabled = true;
+                    prevButton.classList.add('is-disabled');
+                } else {
+                    prevButton.disabled = false;
+                    prevButton.classList.remove('is-disabled');
+                }
+            }
+            
+            if (maxEventDate) {
+                const maxMonth = new Date(maxEventDate.getFullYear(), maxEventDate.getMonth(), 1);
+                if (currentMonth >= maxMonth) {
+                    nextButton.disabled = true;
+                    nextButton.classList.add('is-disabled');
+                } else {
+                    nextButton.disabled = false;
+                    nextButton.classList.remove('is-disabled');
+                }
+            }
+        }
+
+        function toggleDateSelection(dateStr) {
+            const clickedDate = new Date(dateStr);
+            
+            // If no start date, set it
+            if (!selectedDateRangeStart) {
+                selectedDateRangeStart = clickedDate;
+                selectedDates.clear();
+                selectedDates.add(dateStr);
+                hoverPreviewEnd = null;
+            }
+            // If start is set but not end, set end and fill range
+            else if (!selectedDateRangeEnd) {
+                // If clicking the same date as start, reset
+                if (clickedDate.getTime() === selectedDateRangeStart.getTime()) {
+                    return;
+                }
+                
+                // Ensure start is before end
+                let start = selectedDateRangeStart;
+                let end = clickedDate;
+                if (end < start) {
+                    [start, end] = [end, start];
+                    selectedDateRangeStart = start;
+                }
+                
+                selectedDateRangeEnd = end;
+                
+                // Fill all dates in range
+                selectedDates.clear();
+                const current = new Date(start);
+                while (current <= end) {
+                    selectedDates.add(formatDateForStorage(current));
+                    current.setDate(current.getDate() + 1);
+                }
+            }
+            // If both are set, reset and start new range
+            else {
+                selectedDateRangeStart = clickedDate;
+                selectedDateRangeEnd = null;
+                selectedDates.clear();
+                selectedDates.add(dateStr);
+            }
+            
+            renderCalendar();
+            saveSettings();
+        }
+
+        function updateHoverPreview(dateStr) {
+            // Removed: buttons have native hover states
+        }
+
+        function clearHoverPreview() {
+            // Removed: buttons have native hover states
+        }
+
+        function applyHoverRange() {
+            // Removed: buttons have native hover states
+        }
+
+        // CSV Handling
+        function handleCsvUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    csvData = parseCSV(e.target.result);
+                    console.log('CSV parsed:', csvData.length, 'rows');
+                    
+                    // Find min/max dates in CSV
+                    const dates = csvData.map(row => parseDateOnly(row.startDate));
+                    minEventDate = new Date(Math.min(...dates));
+                    maxEventDate = new Date(Math.max(...dates));
+                    
+                    // Set calendar to start at first event month
+                    currentCalendarMonth = new Date(minEventDate.getFullYear(), minEventDate.getMonth(), 1);
+                    
+                    // Clear any previous selection
+                    selectedDates.clear();
+                    selectedDateRangeStart = null;
+                    selectedDateRangeEnd = null;
+                    
+                    detectAndSetDateRange();
+                    // Build rename mapping if custom names are enabled
+                    if (document.getElementById('customNamesToggle').checked && csvData.length > 0) {
+                        buildRenameMapping();
+                        populateRenameMapping();
+                    }
+                    showMessage('uploadMessage', 'CSV uploaded successfully!', 'is-success');
+                    document.getElementById('dateRangeInfo').classList.remove('is-hidden');
+                    updateContinueButtonVisibility();
+                    updateTabDisabledState();
+                    renderCalendar();
+                } catch (error) {
+                    console.error('CSV Error:', error);
+                    showMessage('uploadMessage', 'Error parsing CSV: ' + error.message, 'is-danger');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSV(text) {
+            const lines = text.trim().split('\n');
+            if (lines.length < 2) throw new Error('CSV must have at least a header row');
+            
+            // Parse header
+            const headerLine = lines[0];
+            const header = parseCSVLine(headerLine).map(h => h.toLowerCase());
+            
+            console.log('CSV Header:', header);
+            
+            // Find column indices - look for exact Nexus column names
+            const startDateIdx = header.indexOf('start_date');
+            const finishDateIdx = header.indexOf('finish_date');
+            const startTimeIdx = header.indexOf('start_time');
+            const finishTimeIdx = header.indexOf('finish_time');
+            const nameIdx = header.indexOf('name');
+            const locationIdx = header.indexOf('location');
+            
+            console.log('Column indices:', { startDateIdx, finishDateIdx, startTimeIdx, finishTimeIdx, nameIdx, locationIdx });
+            
+            if (startDateIdx === -1 || startTimeIdx === -1 || nameIdx === -1) {
+                throw new Error('CSV must contain start_date, start_time, and name columns');
+            }
+
+            const rows = [];
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim() === '') continue;
+                
+                // Handle quoted CSV fields
+                const cols = parseCSVLine(lines[i]);
+                
+                if (cols.length <= nameIdx) continue;
+                
+                rows.push({
+                    startDate: cols[startDateIdx],
+                    startTime: cols[startTimeIdx],
+                    endDate: cols[finishDateIdx] || cols[startDateIdx],
+                    endTime: cols[finishTimeIdx] || cols[startTimeIdx],
+                    name: cols[nameIdx],
+                    location: locationIdx >= 0 ? cols[locationIdx] : ''
+                });
+            }
+
+            console.log('Parsed rows:', rows.length);
+            return rows;
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let insideQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                const nextChar = line[i + 1];
+
+                if (char === '"') {
+                    if (insideQuotes && nextChar === '"') {
+                        current += '"';
+                        i++;
+                    } else {
+                        insideQuotes = !insideQuotes;
+                    }
+                } else if (char === ',' && !insideQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+
+            result.push(current.trim());
+            return result;
+        }
+
+        function parseDateTime(dateStr, timeStr) {
+            // Parse Nexus format: DD/MM/YYYY HH:MM
+            const dateParts = dateStr.split('/').map(p => parseInt(p.trim()));
+            const timeParts = timeStr.split(':').map(p => parseInt(p.trim()));
+            
+            if (dateParts.length !== 3 || timeParts.length < 2) {
+                throw new Error(`Invalid date/time format: ${dateStr} ${timeStr}`);
+            }
+            
+            // dateParts: [day, month, year]
+            const day = dateParts[0];
+            const month = dateParts[1] - 1; // JavaScript months are 0-indexed
+            const year = dateParts[2];
+            const hours = timeParts[0];
+            const minutes = timeParts[1];
+            
+            const date = new Date(year, month, day, hours, minutes, 0);
+            
+            if (isNaN(date.getTime())) {
+                throw new Error(`Invalid date: ${dateStr} ${timeStr}`);
+            }
+            
+            return date;
+        }
+
+        function parseDateOnly(dateStr) {
+            // Parse Nexus format: DD/MM/YYYY
+            const dateParts = dateStr.split('/').map(p => parseInt(p.trim()));
+            
+            if (dateParts.length !== 3) {
+                throw new Error(`Invalid date format: ${dateStr}`);
+            }
+            
+            const day = dateParts[0];
+            const month = dateParts[1] - 1;
+            const year = dateParts[2];
+            
+            const date = new Date(year, month, day);
+            
+            if (isNaN(date.getTime())) {
+                throw new Error(`Invalid date: ${dateStr}`);
+            }
+            
+            return date;
+        }
+
+        function detectAndSetDateRange() {
+            if (csvData.length === 0) return;
+
+            try {
+                const dates = csvData.map(row => parseDateOnly(row.startDate));
+                const minDate = new Date(Math.min(...dates));
+                const maxDate = new Date(Math.max(...dates));
+
+                console.log('Date range:', minDate, 'to', maxDate);
+
+                document.getElementById('earliestDate').textContent = minDate.toLocaleDateString();
+                document.getElementById('latestDate').textContent = maxDate.toLocaleDateString();
+                document.getElementById('totalEventsLoaded').textContent = csvData.length;
+
+                // Default the calendar selection to the full CSV range
+                selectedDateRangeStart = minDate;
+                selectedDateRangeEnd = maxDate;
+                selectedDates.clear();
+                const cursor = new Date(minDate);
+                while (cursor <= maxDate) {
+                    selectedDates.add(formatDateForStorage(cursor));
+                    cursor.setDate(cursor.getDate() + 1);
+                }
+
+                saveSettings();
+            } catch (error) {
+                console.error('Date detection error:', error);
+                showMessage('uploadMessage', 'Error detecting date range: ' + error.message, 'is-warning');
+            }
+        }
+
+        function formatDateTimeForDisplay(date) {
+            const dateStr = date.toLocaleDateString();
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${dateStr} ${hours}:${minutes}`;
+        }
+
+        function parseStoredDate(dateStr) {
+            const [year, month, day] = dateStr.split('-').map(Number);
+            return new Date(year, month - 1, day);
+        }
+
+        // Settings Management
+        function saveSettings() {
+            const settings = {
+                selectedStart: selectedDateRangeStart ? formatDateForStorage(selectedDateRangeStart) : null,
+                selectedEnd: selectedDateRangeEnd ? formatDateForStorage(selectedDateRangeEnd) : null,
+                customNamesEnabled: document.getElementById('customNamesToggle').checked,
+                customNames: customNames
+            };
+            localStorage.setItem('timetableSettings', JSON.stringify(settings));
+            console.log('Settings saved:', settings);
+        }
+
+        function loadSettings() {
+            const settings = JSON.parse(localStorage.getItem('timetableSettings') || '{}');
+            
+            if (settings.selectedStart) {
+                selectedDateRangeStart = parseStoredDate(settings.selectedStart);
+            }
+            if (settings.selectedEnd) {
+                selectedDateRangeEnd = parseStoredDate(settings.selectedEnd);
+            }
+            if (selectedDateRangeStart && selectedDateRangeEnd) {
+                selectedDates.clear();
+                const cursor = new Date(selectedDateRangeStart);
+                while (cursor <= selectedDateRangeEnd) {
+                    selectedDates.add(formatDateForStorage(cursor));
+                    cursor.setDate(cursor.getDate() + 1);
+                }
+            }
+            
+            if (settings.customNamesEnabled !== undefined) {
+                document.getElementById('customNamesToggle').checked = settings.customNamesEnabled;
+            }
+            if (settings.customNames) customNames = settings.customNames;
+            
+            toggleRenameFields();
+        }
+
+        function resetCustomNames() {
+            // Reset customNames object
+            customNames = {};
+            
+            // Clear all input field values
+            document.querySelectorAll('.rename-input').forEach(input => {
+                input.value = '';
+            });
+            
+            // Save the cleared settings
+            saveSettings();
+            
+            // Show confirmation message
+            showMessage('previewMessage', 'Custom values have been reset!', 'is-info');
+        }
+
+        function extractSubjectName(fullName) {
+            // Extract subject from format like "Continuing Media 08 (08CMe_T3_1)"
+            // Return just the subject part like "Continuing Media"
+            const match = fullName.match(/^(.+?)\s+\d+\s*\(/);
+            return match ? match[1].trim() : fullName;
+        }
+
+        function extractClassCode(fullName) {
+            // Extract class code from format like "Continuing Media 08 (08CMe_T3_1)"
+            // Return just the code part like "CMe" (3 characters after the year)
+            const match = fullName.match(/\(\d+([A-Za-z]{3})/);
+            return match ? match[1] : fullName;
+        }
+
+        function extractGroupNumber(fullName) {
+            // Extract group number from format like "Continuing Media 08 (08CMe_T3_1)"
+            // Return just the number at the end like "1"
+            const match = fullName.match(/_(\d+)\)$/);
+            return match ? match[1] : '';
+        }
+
+        function toggleRenameFields() {
+            const customEnabled = document.getElementById('customNamesToggle').checked;
+            const renameSection = document.getElementById('renameSection');
+            
+            if (customEnabled) {
+                renameSection.classList.remove('is-hidden');
+                if (csvData.length > 0) {
+                    buildRenameMapping();
+                    populateRenameMapping();
+                }
+            } else {
+                renameSection.classList.add('is-hidden');
+            }
+        }
+
+        function buildRenameMapping() {
+            // Get unique subject names from CSV data
+            const uniqueClasses = {};
+            csvData.forEach(row => {
+                const subject = extractSubjectName(row.name);
+                if (!uniqueClasses[subject]) {
+                    uniqueClasses[subject] = true;
+                }
+            });
+            
+            const container = document.getElementById('renameMappings');
+            container.innerHTML = '';
+            
+            Object.keys(uniqueClasses).sort().forEach(subject => {
+                const html = `
+                    <tr>
+                        <td>${subject}</td>
+                        <td>
+                            <div class="field">
+                                <div class="control">
+                                    <input type="text" class="input rename-input" data-original="${subject}" placeholder="${subject}" onchange="handleCustomNameChange(this)">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        function populateRenameMapping() {
+            const inputs = document.querySelectorAll('.rename-input');
+            inputs.forEach(input => {
+                const original = input.getAttribute('data-original');
+                // Show custom name if it exists in storage, otherwise leave blank
+                input.value = customNames[original] || '';
+            });
+        }
+
+        function handleCustomNameChange(input) {
+            const original = input.getAttribute('data-original');
+            customNames[original] = input.value;
+            
+            saveSettings();
+        }
+
+        // Event Generation
+        function generatePreview() {
+            if (csvData.length === 0) {
+                showMessage('previewMessage', 'Please upload a CSV file first.', 'is-warning');
+                return;
+            }
+
+            const startDate = selectedDateRangeStart || minEventDate;
+            const endDate = selectedDateRangeEnd || selectedDateRangeStart || maxEventDate;
+            if (!startDate || !endDate) {
+                showMessage('previewMessage', 'Please select a date range on the calendar.', 'is-warning');
+                return;
+            }
+            const startDay = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+            const endDay = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+            const customNamesEnabled = document.getElementById('customNamesToggle').checked;
+
+            events = [];
+
+            csvData.forEach(row => {
+                try {
+                    const eventDate = parseDateOnly(row.startDate);
+                    
+                    // Filter by date range
+                    if (eventDate < startDay || eventDate > endDay) return;
+
+                    // Parse times
+                    const startDateTime = parseDateTime(row.startDate, row.startTime);
+                    const endDateTime = parseDateTime(row.endDate, row.endTime);
+
+                    // Determine event name
+                    let eventName;
+                    let groupNumber = extractGroupNumber(row.name);
+                    const subjectName = extractSubjectName(row.name);
+                    
+                    if (customNamesEnabled) {
+                        // Use custom name if provided, otherwise fall back to subject name
+                        eventName = customNames[subjectName] || subjectName;
+                    } else {
+                        // Always use full class name
+                        eventName = subjectName;
+                    }
+
+                    // Build description with group number
+                    const description = groupNumber ? `Group: ${groupNumber}` : '';
+
+                    events.push({
+                        title: eventName,
+                        description: description,
+                        location: row.location,
+                        start: startDateTime,
+                        end: endDateTime
+                    });
+                } catch (error) {
+                    console.error('Error processing row:', row, error);
+                }
+            });
+
+            // Sort by date
+            events.sort((a, b) => a.start - b.start);
+
+            // Display preview
+            document.getElementById('eventCount').textContent = events.length;
+            
+            const tableBody = document.getElementById('eventTableBody');
+            tableBody.innerHTML = '';
+            
+            events.slice(0, 10).forEach(event => {
+                const startStr = formatDateTimeForDisplay(event.start);
+                const endStr = formatDateTimeForDisplay(event.end);
+                const row = `
+                    <tr>
+                        <td>${event.title}</td>
+                        <td>${startStr}</td>
+                        <td>${endStr}</td>
+                        <td>${event.location}</td>
+                    </tr>
+                `;
+                tableBody.insertAdjacentHTML('beforeend', row);
+            });
+
+            if (events.length > 10) {
+                tableBody.insertAdjacentHTML('beforeend', `<tr><td colspan="4" style="text-align: center;">... and ${events.length - 10} more events</td></tr>`);
+            }
+
+            document.getElementById('eventPreview').classList.remove('is-hidden');
+            showMessage('previewMessage', `Successfully processed ${events.length} events!`, 'is-success');
+        }
+
+        function downloadCalendar() {
+            if (events.length === 0) {
+                showMessage('previewMessage', 'No events to download.', 'is-warning');
+                return;
+            }
+
+            ics.events = events;
+            ics.download('timetable.ics');
+            
+            showMessage('previewMessage', 'Calendar downloaded successfully!', 'is-success');
+        }
+
+        // Utilities
+        function showMessage(elementId, text, className) {
+            const element = document.getElementById(elementId);
+            const textElement = document.getElementById(elementId + 'Text');
+            
+            element.classList.remove('is-info', 'is-success', 'is-warning', 'is-danger', 'is-hidden');
+            element.classList.add(className);
+            textElement.textContent = text;
+        }
+    </script>
+</body>
+</html>
