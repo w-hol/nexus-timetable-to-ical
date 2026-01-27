@@ -203,23 +203,6 @@
                 <div class="box">
                     <h2>Customization Settings</h2>
                     
-                    <div class="field">
-                        <label class="label">Year Level</label>
-                        <div class="control">
-                            <div class="select is-fullwidth">
-                                <select id="yearLevel" onchange="saveSettings()">
-                                    <option value="">Select year level...</option>
-                                    <option value="7">Year 7</option>
-                                    <option value="8">Year 8</option>
-                                    <option value="9">Year 9</option>
-                                    <option value="10">Year 10</option>
-                                    <option value="11">Year 11</option>
-                                    <option value="12">Year 12</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="columns">
                         <div class="column is-half">
                             <div class="field">
@@ -240,21 +223,6 @@
                     </div>
 
                     <div class="field">
-                        <label class="label">School Term Number</label>
-                        <div class="control">
-                            <div class="select is-fullwidth">
-                                <select id="termNumber" onchange="saveSettings()">
-                                    <option value="">Select term...</option>
-                                    <option value="1">Term 1</option>
-                                    <option value="2">Term 2</option>
-                                    <option value="3">Term 3</option>
-                                    <option value="4">Term 4</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="field">
                         <label class="label">Event Name Format</label>
                         <div class="control">
                             <label class="radio">
@@ -268,10 +236,9 @@
 
                     <!-- Rename Mappings Section -->
                     <div id="renameSection" class="is-hidden mt-5">
-                        <h4>Subject Rename Mappings (Optional)</h4>
-                        <p style="font-size: 0.9rem;">Leave blank to use original names. Example: "Biology 10A" → "Bio"</p>
+                        <h4>Class Name Customization</h4>
+                        <p style="font-size: 0.9rem;">Customize how class names appear in your calendar.</p>
                         <div id="renameMappings" class="mt-3"></div>
-                        <button class="button is-small mt-3" onclick="addRenameMapping()">+ Add Another Mapping</button>
                     </div>
 
                     <button class="button is-success mt-5" onclick="goToNextTab('preview')">Continue to Preview →</button>
@@ -365,6 +332,11 @@
                     csvData = parseCSV(e.target.result);
                     console.log('CSV parsed:', csvData.length, 'rows');
                     detectAndSetDateRange();
+                    // Build rename mapping if fullName format is selected
+                    const format = document.querySelector('input[name="nameFormat"]:checked')?.value;
+                    if (format === 'fullName') {
+                        buildRenameMapping();
+                    }
                     showMessage('uploadMessage', 'CSV uploaded successfully!', 'is-success');
                     document.getElementById('dateRangeInfo').classList.remove('is-hidden');
                 } catch (error) {
@@ -529,10 +501,8 @@
         // Settings Management
         function saveSettings() {
             const settings = {
-                yearLevel: document.getElementById('yearLevel').value,
                 startDate: document.getElementById('startDate').value,
                 endDate: document.getElementById('endDate').value,
-                termNumber: document.getElementById('termNumber').value,
                 nameFormat: document.querySelector('input[name="nameFormat"]:checked')?.value || 'fullName',
                 renameMappings: getRenameMappings()
             };
@@ -543,23 +513,32 @@
         function loadSettings() {
             const settings = JSON.parse(localStorage.getItem('timetableSettings') || '{}');
             
-            if (settings.yearLevel) document.getElementById('yearLevel').value = settings.yearLevel;
             if (settings.startDate) document.getElementById('startDate').value = settings.startDate;
             if (settings.endDate) document.getElementById('endDate').value = settings.endDate;
-            if (settings.termNumber) document.getElementById('termNumber').value = settings.termNumber;
             if (settings.nameFormat) document.querySelector(`input[name="nameFormat"][value="${settings.nameFormat}"]`).checked = true;
             
-            // Restore rename mappings
-            if (settings.renameMappings && settings.renameMappings.length > 0) {
-                document.getElementById('renameMappings').innerHTML = '';
-                settings.renameMappings.forEach(mapping => {
-                    addRenameMapping(mapping.original, mapping.renamed);
-                });
-            } else {
-                addRenameMapping();
-            }
-
             toggleRenameFields();
+        }
+
+        function extractSubjectName(fullName) {
+            // Extract subject from format like "Continuing Media 08 (08CMe_T3_1)"
+            // Return just the subject part like "Continuing Media"
+            const match = fullName.match(/^(.+?)\s+\d+\s*\(/);
+            return match ? match[1].trim() : fullName;
+        }
+
+        function extractClassCode(fullName) {
+            // Extract class code from format like "Continuing Media 08 (08CMe_T3_1)"
+            // Return just the code part like "CMe"
+            const match = fullName.match(/\((\d+)([A-Z]+)/);
+            return match ? match[2] : fullName;
+        }
+
+        function extractGroupNumber(fullName) {
+            // Extract group number from format like "Continuing Media 08 (08CMe_T3_1)"
+            // Return just the number at the end like "1"
+            const match = fullName.match(/_(\d+)\)$/);
+            return match ? match[1] : '';
         }
 
         function toggleRenameFields() {
@@ -568,37 +547,48 @@
             
             if (format === 'fullName') {
                 renameSection.classList.remove('is-hidden');
+                // Build mapping fields from CSV data
+                if (csvData.length > 0) {
+                    buildRenameMapping();
+                }
             } else {
                 renameSection.classList.add('is-hidden');
             }
         }
 
-        function addRenameMapping(original = '', renamed = '') {
+        function buildRenameMapping() {
+            // Get unique subject names from CSV data
+            const uniqueSubjects = [...new Set(csvData.map(row => extractSubjectName(row.name)))];
             const container = document.getElementById('renameMappings');
+            const settings = JSON.parse(localStorage.getItem('timetableSettings') || '{}');
+            const existingMappings = settings.renameMappings || [];
             
-            const html = `
-                <div class="columns" style="margin-bottom: 1rem;">
-                    <div class="column is-5">
-                        <input type="text" class="input rename-original" placeholder="Original name (e.g., Biology 10A)" value="${original}" onchange="saveSettings()">
-                    </div>
-                    <div class="column is-5">
-                        <input type="text" class="input rename-renamed" placeholder="New name (e.g., Bio)" value="${renamed}" onchange="saveSettings()">
-                    </div>
-                    <div class="column is-2">
-                        <button class="button is-danger is-fullwidth" onclick="this.closest('.columns').remove(); saveSettings();">✕</button>
-                    </div>
-                </div>
-            `;
+            container.innerHTML = '';
             
-            container.insertAdjacentHTML('beforeend', html);
+            uniqueSubjects.forEach(subject => {
+                // Check if there's an existing mapping for this subject
+                const existing = existingMappings.find(m => m.original === subject);
+                const customName = existing ? existing.renamed : subject;
+                
+                const html = `
+                    <div class="field" style="margin-bottom: 1.5rem;">
+                        <label class="label">${subject}</label>
+                        <div class="control">
+                            <input type="text" class="input rename-mapping-${subject.replace(/\s+/g, '_')}" data-original="${subject}" placeholder="${subject}" value="${customName}" onchange="saveSettings()">
+                        </div>
+                    </div>
+                `;
+                
+                container.insertAdjacentHTML('beforeend', html);
+            });
         }
 
         function getRenameMappings() {
             const mappings = [];
-            document.querySelectorAll('#renameMappings .columns').forEach(row => {
-                const original = row.querySelector('.rename-original').value.trim();
-                const renamed = row.querySelector('.rename-renamed').value.trim();
-                if (original && renamed) {
+            document.querySelectorAll('[data-original]').forEach(input => {
+                const original = input.getAttribute('data-original');
+                const renamed = input.value.trim() || original;
+                if (original && renamed !== original) {
                     mappings.push({ original, renamed });
                 }
             });
@@ -630,22 +620,32 @@
                     const startDateTime = parseDateTime(row.startDate, row.startTime);
                     const endDateTime = parseDateTime(row.endDate, row.endTime);
 
-                    // Determine event name
+                    // Determine event name based on format
                     let eventName = row.name;
+                    let groupNumber = extractGroupNumber(row.name);
+                    
                     if (nameFormat === 'classCode') {
-                        // Extract class code (usually in parentheses)
-                        const match = row.name.match(/\(([^)]+)\)/);
-                        eventName = match ? match[1] : row.name;
+                        // Use just the class code
+                        eventName = extractClassCode(row.name);
                     } else if (nameFormat === 'fullName') {
+                        // Use subject name and apply rename mappings
+                        const subjectName = extractSubjectName(row.name);
+                        eventName = subjectName;
+                        
                         // Apply rename mappings
                         renameMappings.forEach(mapping => {
-                            eventName = eventName.replace(mapping.original, mapping.renamed);
+                            if (eventName === mapping.original) {
+                                eventName = mapping.renamed;
+                            }
                         });
                     }
 
+                    // Build description with group number
+                    const description = groupNumber ? `Group: ${groupNumber}` : '';
+
                     events.push({
                         title: eventName,
-                        description: `Year Level: ${document.getElementById('yearLevel').value || 'N/A'}\nTerm: ${document.getElementById('termNumber').value || 'N/A'}`,
+                        description: description,
                         location: row.location,
                         start: startDateTime,
                         end: endDateTime
