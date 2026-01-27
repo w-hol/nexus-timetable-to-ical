@@ -1,49 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="is-dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus Timetable to iCal</title>
     <link rel="stylesheet" href="bulma.min.css">
     <style>
-        html.is-dark { background-color: #0a0e27; }
-        body.is-dark { background-color: #0a0e27; color: #ecf0f1; }
-        
-        .navbar.is-dark { background-color: #0f1419; }
-        .box.is-dark { background-color: #1a1f3a; color: #ecf0f1; }
-        
-        .section.is-dark { background-color: #0a0e27; }
-        
-        .tabs.is-dark { border-bottom-color: #2d3347; }
-        .tabs.is-dark a { color: #9ca3af; }
-        .tabs.is-dark a.is-active { border-bottom-color: #3b82f6; color: #3b82f6; }
-        .tabs.is-dark a:hover { border-bottom-color: #4b5563; color: #d1d5db; }
-        
-        .message.is-dark { background-color: #1a1f3a; border-left-color: #2d3347; color: #d1d5db; }
-        .message.is-dark.is-info { background-color: #1e3a5f; border-left-color: #3b82f6; }
-        .message.is-dark.is-success { background-color: #1e3a2f; border-left-color: #10b981; }
-        .message.is-dark.is-warning { background-color: #3a3220; border-left-color: #f59e0b; }
-        .message.is-dark.is-danger { background-color: #3a1f2f; border-left-color: #ef4444; }
-        
-        .table.is-dark { background-color: #1a1f3a; color: #d1d5db; }
-        .table.is-dark td, .table.is-dark th { border-color: #2d3347; }
-        .table.is-dark th { background-color: #0f1419; color: #9ca3af; }
-        
-        input.is-dark, select.is-dark, textarea.is-dark { background-color: #1a1f3a; border-color: #2d3347; color: #d1d5db; }
-        input.is-dark:focus, select.is-dark:focus, textarea.is-dark:focus { border-color: #3b82f6; color: #ecf0f1; }
-        
-        .button.is-dark { background-color: #2d3347; border-color: #3a424d; color: #d1d5db; }
-        .button.is-dark:hover { background-color: #3a424d; border-color: #4a5262; color: #ecf0f1; }
-        .button.is-dark.is-primary { background-color: #3b82f6; border-color: #3b82f6; color: #ffffff; }
-        .button.is-dark.is-primary:hover { background-color: #2563eb; border-color: #2563eb; }
-        .button.is-dark.is-success { background-color: #10b981; border-color: #10b981; color: #ffffff; }
-        .button.is-dark.is-success:hover { background-color: #059669; border-color: #059669; }
-        .button.is-dark.is-danger { background-color: #ef4444; border-color: #ef4444; color: #ffffff; }
-        .button.is-dark.is-danger:hover { background-color: #dc2626; border-color: #dc2626; }
-        .button.is-dark.is-small { font-size: 0.75rem; }
-        
-        label.is-dark { color: #d1d5db; }
-        
         .tab-content { display: none; }
         .tab-content.is-active { display: block; }
     </style>
@@ -55,7 +17,7 @@
             <p>Convert your Nexus school timetable CSV to an iCalendar file with custom formatting options.</p>
             
             <!-- Main Content Tabs -->
-            <div class="tabs mt-3">
+            <div class="tabs mt-5">
                 <a class="tab-link is-active" data-tab="upload">1. Upload CSV</a>
                 <a class="tab-link" data-tab="settings">2. Settings</a>
                 <a class="tab-link" data-tab="preview">3. Preview & Download</a>
@@ -70,15 +32,15 @@
                     <div class="field">
                         <label class="label">Select CSV File</label>
                         <div class="control">
-                            <input type="file" id="csvFile" accept=".csv" class="is-dark" onchange="handleCsvUpload(event)">
+                            <input type="file" id="csvFile" accept=".csv" onchange="handleCsvUpload(event)">
                         </div>
                     </div>
                     
-                    <div id="uploadMessage" class="message is-hidden is-dark mt-3">
+                    <div id="uploadMessage" class="message is-hidden mt-3">
                         <div class="message-body" id="uploadMessageText"></div>
                     </div>
                     
-                    <div id="dateRangeInfo" class="box is-hidden is-dark mt-3">
+                    <div id="dateRangeInfo" class="box is-hidden mt-3">
                         <h4>Detected Date Range</h4>
                         <p><strong>Earliest date:</strong> <span id="earliestDate"></span></p>
                         <p><strong>Latest date:</strong> <span id="latestDate"></span></p>
@@ -88,21 +50,23 @@
 
             <!-- Tab 2: Settings -->
             <div id="settings" class="tab-content is-hidden">
-                <div class="box is-dark">
+                <div class="box">
                     <h2>Customization Settings</h2>
                     
                     <div class="field">
                         <label class="label">Year Level</label>
                         <div class="control">
-                            <select id="yearLevel" class="is-dark" onchange="saveSettings()">
-                                <option value="">Select year level...</option>
-                                <option value="7">Year 7</option>
-                                <option value="8">Year 8</option>
-                                <option value="9">Year 9</option>
-                                <option value="10">Year 10</option>
-                                <option value="11">Year 11</option>
-                                <option value="12">Year 12</option>
-                            </select>
+                            <div class="select is-fullwidth">
+                                <select id="yearLevel" onchange="saveSettings()">
+                                    <option value="">Select year level...</option>
+                                    <option value="7">Year 7</option>
+                                    <option value="8">Year 8</option>
+                                    <option value="9">Year 9</option>
+                                    <option value="10">Year 10</option>
+                                    <option value="11">Year 11</option>
+                                    <option value="12">Year 12</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
@@ -111,7 +75,7 @@
                             <div class="field">
                                 <label class="label">Start Date</label>
                                 <div class="control">
-                                    <input type="date" id="startDate" class="is-dark" onchange="saveSettings()">
+                                    <input type="date" id="startDate" onchange="saveSettings()">
                                 </div>
                             </div>
                         </div>
@@ -119,7 +83,7 @@
                             <div class="field">
                                 <label class="label">End Date</label>
                                 <div class="control">
-                                    <input type="date" id="endDate" class="is-dark" onchange="saveSettings()">
+                                    <input type="date" id="endDate" onchange="saveSettings()">
                                 </div>
                             </div>
                         </div>
@@ -128,46 +92,48 @@
                     <div class="field">
                         <label class="label">School Term Number</label>
                         <div class="control">
-                            <select id="termNumber" class="is-dark" onchange="saveSettings()">
-                                <option value="">Select term...</option>
-                                <option value="1">Term 1</option>
-                                <option value="2">Term 2</option>
-                                <option value="3">Term 3</option>
-                                <option value="4">Term 4</option>
-                            </select>
+                            <div class="select is-fullwidth">
+                                <select id="termNumber" onchange="saveSettings()">
+                                    <option value="">Select term...</option>
+                                    <option value="1">Term 1</option>
+                                    <option value="2">Term 2</option>
+                                    <option value="3">Term 3</option>
+                                    <option value="4">Term 4</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
                     <div class="field">
                         <label class="label">Event Name Format</label>
                         <div class="control">
-                            <label style="display: flex; align-items: center; margin-bottom: 0.5rem;">
-                                <input type="radio" name="nameFormat" value="fullName" onchange="saveSettings(); toggleRenameFields()" style="margin-right: 0.5rem;"> Full Class Name
+                            <label class="radio">
+                                <input type="radio" name="nameFormat" value="fullName" onchange="saveSettings(); toggleRenameFields()"> Full Class Name
                             </label>
-                            <label style="display: flex; align-items: center;">
-                                <input type="radio" name="nameFormat" value="classCode" onchange="saveSettings(); toggleRenameFields()" style="margin-right: 0.5rem;"> Class Code Only
+                            <label class="radio">
+                                <input type="radio" name="nameFormat" value="classCode" onchange="saveSettings(); toggleRenameFields()"> Class Code Only
                             </label>
                         </div>
                     </div>
 
                     <!-- Rename Mappings Section -->
-                    <div id="renameSection" class="is-hidden mt-3">
+                    <div id="renameSection" class="is-hidden mt-5">
                         <h4>Subject Rename Mappings (Optional)</h4>
-                        <p style="font-size: 0.9rem; color: #9ca3af;">Leave blank to use original names. Example: "Biology 10A" → "Bio"</p>
+                        <p style="font-size: 0.9rem;">Leave blank to use original names. Example: "Biology 10A" → "Bio"</p>
                         <div id="renameMappings" class="mt-3"></div>
-                        <button class="button is-small is-dark mt-3" onclick="addRenameMapping()">+ Add Another Mapping</button>
+                        <button class="button is-small mt-3" onclick="addRenameMapping()">+ Add Another Mapping</button>
                     </div>
 
-                    <button class="button is-success is-dark mt-3" onclick="goToNextTab('preview')">Continue to Preview →</button>
+                    <button class="button is-success mt-5" onclick="goToNextTab('preview')">Continue to Preview →</button>
                 </div>
             </div>
 
             <!-- Tab 3: Preview & Download -->
             <div id="preview" class="tab-content is-hidden">
-                <div class="box is-dark">
+                <div class="box">
                     <h2>Preview & Download</h2>
                     
-                    <div id="previewMessage" class="message is-hidden is-dark">
+                    <div id="previewMessage" class="message is-hidden mt-3">
                         <div class="message-body" id="previewMessageText"></div>
                     </div>
 
@@ -175,7 +141,7 @@
                         <h4>Events Summary</h4>
                         <p><strong id="eventCount">0</strong> events will be included in your calendar.</p>
                         
-                        <table class="table is-striped is-dark mt-3">
+                        <table class="table is-striped is-fullwidth mt-3">
                             <thead>
                                 <tr>
                                     <th>Event Name</th>
@@ -187,7 +153,7 @@
                             </tbody>
                         </table>
 
-                        <button class="button is-primary is-large is-dark mt-3" onclick="downloadCalendar()">
+                        <button class="button is-primary is-large mt-5" onclick="downloadCalendar()">
                             📥 Download Calendar File
                         </button>
                     </div>
@@ -214,32 +180,28 @@
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
                     const tabName = this.getAttribute('data-tab');
-                    
-                    // Update active tab link
-                    document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('is-active'));
-                    this.classList.add('is-active');
-                    
-                    // Update active tab content
-                    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('is-active'));
-                    document.getElementById(tabName).classList.add('is-active');
-                    
-                    // Handle special actions
-                    if (tabName === 'preview') {
-                        generatePreview();
-                    }
+                    switchTab(tabName);
                 });
             });
         }
 
-        function goToNextTab(tabName) {
+        function switchTab(tabName) {
+            // Update active tab link
             document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('is-active'));
             document.querySelector(`[data-tab="${tabName}"]`).classList.add('is-active');
+            
+            // Update active tab content
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('is-active'));
             document.getElementById(tabName).classList.add('is-active');
             
+            // Handle special actions
             if (tabName === 'preview') {
                 generatePreview();
             }
+        }
+
+        function goToNextTab(tabName) {
+            switchTab(tabName);
         }
 
         // CSV Handling
@@ -251,13 +213,12 @@
             reader.onload = function(e) {
                 try {
                     csvData = parseCSV(e.target.result);
+                    console.log('CSV parsed:', csvData.length, 'rows');
                     detectAndSetDateRange();
                     showMessage('uploadMessage', 'CSV uploaded successfully!', 'is-success');
                     document.getElementById('dateRangeInfo').classList.remove('is-hidden');
-                    
-                    // Enable next tab
-                    document.querySelector('[data-tab="settings"]').style.pointerEvents = 'auto';
                 } catch (error) {
+                    console.error('CSV Error:', error);
                     showMessage('uploadMessage', 'Error parsing CSV: ' + error.message, 'is-danger');
                 }
             };
@@ -269,7 +230,10 @@
             if (lines.length < 2) throw new Error('CSV must have at least a header row');
             
             // Parse header
-            const header = lines[0].split(',').map(h => h.trim().toLowerCase());
+            const headerLine = lines[0];
+            const header = parseCSVLine(headerLine).map(h => h.toLowerCase());
+            
+            console.log('CSV Header:', header);
             
             // Find column indices - look for exact Nexus column names
             const startDateIdx = header.indexOf('start_date');
@@ -278,6 +242,8 @@
             const finishTimeIdx = header.indexOf('finish_time');
             const nameIdx = header.indexOf('name');
             const locationIdx = header.indexOf('location');
+            
+            console.log('Column indices:', { startDateIdx, finishDateIdx, startTimeIdx, finishTimeIdx, nameIdx, locationIdx });
             
             if (startDateIdx === -1 || startTimeIdx === -1 || nameIdx === -1) {
                 throw new Error('CSV must contain start_date, start_time, and name columns');
@@ -302,6 +268,7 @@
                 });
             }
 
+            console.log('Parsed rows:', rows.length);
             return rows;
         }
 
@@ -333,20 +300,73 @@
             return result;
         }
 
+        function parseDateTime(dateStr, timeStr) {
+            // Parse Nexus format: DD/MM/YYYY HH:MM
+            const dateParts = dateStr.split('/').map(p => parseInt(p.trim()));
+            const timeParts = timeStr.split(':').map(p => parseInt(p.trim()));
+            
+            if (dateParts.length !== 3 || timeParts.length < 2) {
+                throw new Error(`Invalid date/time format: ${dateStr} ${timeStr}`);
+            }
+            
+            // dateParts: [day, month, year]
+            const day = dateParts[0];
+            const month = dateParts[1] - 1; // JavaScript months are 0-indexed
+            const year = dateParts[2];
+            const hours = timeParts[0];
+            const minutes = timeParts[1];
+            
+            const date = new Date(year, month, day, hours, minutes, 0);
+            
+            if (isNaN(date.getTime())) {
+                throw new Error(`Invalid date: ${dateStr} ${timeStr}`);
+            }
+            
+            return date;
+        }
+
+        function parseDateOnly(dateStr) {
+            // Parse Nexus format: DD/MM/YYYY
+            const dateParts = dateStr.split('/').map(p => parseInt(p.trim()));
+            
+            if (dateParts.length !== 3) {
+                throw new Error(`Invalid date format: ${dateStr}`);
+            }
+            
+            const day = dateParts[0];
+            const month = dateParts[1] - 1;
+            const year = dateParts[2];
+            
+            const date = new Date(year, month, day);
+            
+            if (isNaN(date.getTime())) {
+                throw new Error(`Invalid date: ${dateStr}`);
+            }
+            
+            return date;
+        }
+
         function detectAndSetDateRange() {
             if (csvData.length === 0) return;
 
-            const dates = csvData.map(row => new Date(row.startDate));
-            const minDate = new Date(Math.min(...dates));
-            const maxDate = new Date(Math.max(...dates));
+            try {
+                const dates = csvData.map(row => parseDateOnly(row.startDate));
+                const minDate = new Date(Math.min(...dates));
+                const maxDate = new Date(Math.max(...dates));
 
-            document.getElementById('earliestDate').textContent = minDate.toLocaleDateString();
-            document.getElementById('latestDate').textContent = maxDate.toLocaleDateString();
+                console.log('Date range:', minDate, 'to', maxDate);
 
-            document.getElementById('startDate').value = formatDateForInput(minDate);
-            document.getElementById('endDate').value = formatDateForInput(maxDate);
+                document.getElementById('earliestDate').textContent = minDate.toLocaleDateString();
+                document.getElementById('latestDate').textContent = maxDate.toLocaleDateString();
 
-            saveSettings();
+                document.getElementById('startDate').value = formatDateForInput(minDate);
+                document.getElementById('endDate').value = formatDateForInput(maxDate);
+
+                saveSettings();
+            } catch (error) {
+                console.error('Date detection error:', error);
+                showMessage('uploadMessage', 'Error detecting date range: ' + error.message, 'is-warning');
+            }
         }
 
         function formatDateForInput(date) {
@@ -367,6 +387,7 @@
                 renameMappings: getRenameMappings()
             };
             localStorage.setItem('timetableSettings', JSON.stringify(settings));
+            console.log('Settings saved:', settings);
         }
 
         function loadSettings() {
@@ -404,18 +425,17 @@
 
         function addRenameMapping(original = '', renamed = '') {
             const container = document.getElementById('renameMappings');
-            const mappingId = 'mapping-' + Date.now() + Math.random();
             
             const html = `
-                <div class="columns" style="gap: 0.5rem; margin-bottom: 0.5rem;">
-                    <div class="column">
-                        <input type="text" class="rename-original is-dark" placeholder="Original name (e.g., Biology 10A)" value="${original}" onchange="saveSettings()">
+                <div class="columns" style="margin-bottom: 1rem;">
+                    <div class="column is-5">
+                        <input type="text" class="input rename-original" placeholder="Original name (e.g., Biology 10A)" value="${original}" onchange="saveSettings()">
                     </div>
-                    <div class="column">
-                        <input type="text" class="rename-renamed is-dark" placeholder="New name (e.g., Bio)" value="${renamed}" onchange="saveSettings()">
+                    <div class="column is-5">
+                        <input type="text" class="input rename-renamed" placeholder="New name (e.g., Bio)" value="${renamed}" onchange="saveSettings()">
                     </div>
-                    <div class="column" style="flex: 0 0 auto;">
-                        <button class="button is-danger is-small is-dark" onclick="this.parentElement.parentElement.remove(); saveSettings();">✕</button>
+                    <div class="column is-2">
+                        <button class="button is-danger is-fullwidth" onclick="this.closest('.columns').remove(); saveSettings();">✕</button>
                     </div>
                 </div>
             `;
@@ -450,36 +470,39 @@
             events = [];
 
             csvData.forEach(row => {
-                const eventDate = new Date(row.startDate);
-                
-                // Filter by date range
-                if (eventDate < startDate || eventDate > endDate) return;
+                try {
+                    const eventDate = parseDateOnly(row.startDate);
+                    
+                    // Filter by date range
+                    if (eventDate < startDate || eventDate > endDate) return;
 
-                // Parse times
-                const startDateTime = parseDateTime(row.startDate, row.startTime);
-                const endDateTime = parseDateTime(row.endDate, row.endTime);
+                    // Parse times
+                    const startDateTime = parseDateTime(row.startDate, row.startTime);
+                    const endDateTime = parseDateTime(row.endDate, row.endTime);
 
-                // Determine event name
-                let eventName = row.name;
-                if (nameFormat === 'classCode') {
-                    // Extract class code (usually last part or in parentheses)
-                    const match = row.name.match(/\(([^)]+)\)|([A-Z0-9]+)$/);
-                    eventName = match ? match[1] || match[2] : row.name;
-                } else if (nameFormat === 'fullName') {
-                    // Apply rename mappings
-                    renameMappings.forEach(mapping => {
-                        eventName = eventName.replace(mapping.original, mapping.renamed);
+                    // Determine event name
+                    let eventName = row.name;
+                    if (nameFormat === 'classCode') {
+                        // Extract class code (usually in parentheses)
+                        const match = row.name.match(/\(([^)]+)\)/);
+                        eventName = match ? match[1] : row.name;
+                    } else if (nameFormat === 'fullName') {
+                        // Apply rename mappings
+                        renameMappings.forEach(mapping => {
+                            eventName = eventName.replace(mapping.original, mapping.renamed);
+                        });
+                    }
+
+                    events.push({
+                        title: eventName,
+                        description: `Year Level: ${document.getElementById('yearLevel').value || 'N/A'}\nTerm: ${document.getElementById('termNumber').value || 'N/A'}`,
+                        location: row.location,
+                        start: startDateTime,
+                        end: endDateTime
                     });
+                } catch (error) {
+                    console.error('Error processing row:', row, error);
                 }
-
-                events.push({
-                    title: eventName,
-                    description: `Year Level: ${document.getElementById('yearLevel').value || 'N/A'}\nTerm: ${document.getElementById('termNumber').value || 'N/A'}`,
-                    location: row.location,
-                    start: startDateTime,
-                    end: endDateTime,
-                    date: eventDate
-                });
             });
 
             // Sort by date
@@ -503,36 +526,11 @@
             });
 
             if (events.length > 10) {
-                tableBody.insertAdjacentHTML('beforeend', `<tr><td colspan="3" style="text-align: center; color: #999;">... and ${events.length - 10} more events</td></tr>`);
+                tableBody.insertAdjacentHTML('beforeend', `<tr><td colspan="3" style="text-align: center;">... and ${events.length - 10} more events</td></tr>`);
             }
 
             document.getElementById('eventPreview').classList.remove('is-hidden');
             showMessage('previewMessage', `Successfully processed ${events.length} events!`, 'is-success');
-        }
-
-        function parseDateTime(dateStr, timeStr) {
-            // Parse Nexus format: DD/MM/YYYY HH:MM
-            const dateParts = dateStr.split('/').map(p => parseInt(p.trim()));
-            const timeParts = timeStr.split(':').map(p => parseInt(p.trim()));
-            
-            if (dateParts.length !== 3 || timeParts.length < 2) {
-                throw new Error(`Invalid date/time format: ${dateStr} ${timeStr}`);
-            }
-            
-            // dateParts: [day, month, year]
-            const day = dateParts[0];
-            const month = dateParts[1] - 1; // JavaScript months are 0-indexed
-            const year = dateParts[2];
-            const hours = timeParts[0];
-            const minutes = timeParts[1];
-            
-            const date = new Date(year, month, day, hours, minutes, 0);
-            
-            if (isNaN(date.getTime())) {
-                throw new Error(`Invalid date: ${dateStr} ${timeStr}`);
-            }
-            
-            return date;
         }
 
         function downloadCalendar() {
