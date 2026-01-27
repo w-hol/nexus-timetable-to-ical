@@ -32,7 +32,7 @@ Everything runs locally on your browser, so I can't see your data, and you don't
 1. Click the calendar icon on the left
 2. File → Open & Export → Open Calendar → select your `.ics` file
 
-### Apple Calendar
+### Apple Calendar (Mac)
 1. File → Import, then select your `.ics` file
 
 ## Tech stuff
