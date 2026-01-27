@@ -4,88 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus Timetable to iCal</title>
+    <link rel="stylesheet" href="bulma.min.css">
     <style>
-        /* Bulma CSS Framework - Inline */
-        * { box-sizing: border-box; }
-        html { font-family: BlinkMacSystemFont, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 16px; -moz-osx-font-smoothing: grayscale; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
-        body { background-color: #f5f5f5; color: #363636; font-size: 1em; font-weight: 400; line-height: 1.5; margin: 0; padding: 0; }
-        h1, h2, h3, h4, h5, h6 { color: inherit; font-weight: 600; line-height: 1.125; margin-bottom: 1rem; margin-top: 0; }
-        h1 { font-size: 2.5rem; }
-        h2 { font-size: 2rem; }
-        h3 { font-size: 1.75rem; }
-        h4 { font-size: 1.5rem; }
-        h5 { font-size: 1.25rem; }
-        h6 { font-size: 1rem; }
+        html.is-dark { background-color: #0a0e27; }
+        body.is-dark { background-color: #0a0e27; color: #ecf0f1; }
         
-        .container { flex-grow: 1; margin: 0 auto; position: relative; width: auto; max-width: 960px; margin-left: auto; margin-right: auto; padding: 0 20px; }
-        .container.is-fullhd { max-width: 1408px; }
+        .navbar.is-dark { background-color: #0f1419; }
+        .box.is-dark { background-color: #1a1f3a; color: #ecf0f1; }
         
-        .section { padding: 3rem 1.5rem; }
-        .section.is-small { padding: 1.5rem; }
+        .section.is-dark { background-color: #0a0e27; }
         
-        .box { background-color: white; border-radius: 6px; box-shadow: 0 0.5em 1em rgba(10,10,10,0.1); color: inherit; display: block; padding: 1.5rem; }
+        .tabs.is-dark { border-bottom-color: #2d3347; }
+        .tabs.is-dark a { color: #9ca3af; }
+        .tabs.is-dark a.is-active { border-bottom-color: #3b82f6; color: #3b82f6; }
+        .tabs.is-dark a:hover { border-bottom-color: #4b5563; color: #d1d5db; }
         
-        .field { margin-bottom: 1rem; }
-        .field:last-child { margin-bottom: 0; }
+        .message.is-dark { background-color: #1a1f3a; border-left-color: #2d3347; color: #d1d5db; }
+        .message.is-dark.is-info { background-color: #1e3a5f; border-left-color: #3b82f6; }
+        .message.is-dark.is-success { background-color: #1e3a2f; border-left-color: #10b981; }
+        .message.is-dark.is-warning { background-color: #3a3220; border-left-color: #f59e0b; }
+        .message.is-dark.is-danger { background-color: #3a1f2f; border-left-color: #ef4444; }
         
-        .label { color: #363636; display: block; font-size: 1rem; font-weight: 600; margin-bottom: 0.5em; }
+        .table.is-dark { background-color: #1a1f3a; color: #d1d5db; }
+        .table.is-dark td, .table.is-dark th { border-color: #2d3347; }
+        .table.is-dark th { background-color: #0f1419; color: #9ca3af; }
         
-        .control { position: relative; text-align: left; }
-        .control input, .control textarea, .control select { background-color: white; border: 1px solid #dbdbdb; border-radius: 4px; color: #363636; display: block; font-family: inherit; font-size: 1em; max-width: 100%; padding: 0.625em; width: 100%; }
-        .control input:focus, .control textarea:focus, .control select:focus { border-color: #3273dc; outline: none; }
+        input.is-dark, select.is-dark, textarea.is-dark { background-color: #1a1f3a; border-color: #2d3347; color: #d1d5db; }
+        input.is-dark:focus, select.is-dark:focus, textarea.is-dark:focus { border-color: #3b82f6; color: #ecf0f1; }
         
-        .button { background-color: white; border: 1px solid #dbdbdb; border-radius: 4px; color: #363636; cursor: pointer; justify-content: center; padding: 0.625em 1em; text-align: center; white-space: nowrap; font-size: 1rem; font-weight: 600; }
-        .button:hover { border-color: #b5b5b5; color: #363636; }
-        .button.is-primary { background-color: #3273dc; border-color: #3273dc; color: white; }
-        .button.is-primary:hover { background-color: #2366d1; border-color: #2366d1; }
-        .button.is-success { background-color: #48c774; border-color: #48c774; color: white; }
-        .button.is-success:hover { background-color: #3aa373; border-color: #3aa373; }
+        .button.is-dark { background-color: #2d3347; border-color: #3a424d; color: #d1d5db; }
+        .button.is-dark:hover { background-color: #3a424d; border-color: #4a5262; color: #ecf0f1; }
+        .button.is-dark.is-primary { background-color: #3b82f6; border-color: #3b82f6; color: #ffffff; }
+        .button.is-dark.is-primary:hover { background-color: #2563eb; border-color: #2563eb; }
+        .button.is-dark.is-success { background-color: #10b981; border-color: #10b981; color: #ffffff; }
+        .button.is-dark.is-success:hover { background-color: #059669; border-color: #059669; }
+        .button.is-dark.is-danger { background-color: #ef4444; border-color: #ef4444; color: #ffffff; }
+        .button.is-dark.is-danger:hover { background-color: #dc2626; border-color: #dc2626; }
+        .button.is-dark.is-small { font-size: 0.75rem; }
         
-        .columns { margin-left: -0.75rem; margin-right: -0.75rem; margin-top: -0.75rem; }
-        .columns:last-child { margin-bottom: -0.75rem; }
-        .column { padding: 0.75rem; }
-        .column.is-half { flex: none; width: 50%; }
-        .column.is-third { flex: none; width: 33.3333%; }
-        .column.is-two-thirds { flex: none; width: 66.6666%; }
-        
-        @media screen and (max-width: 768px) {
-            .column.is-half, .column.is-third, .column.is-two-thirds { flex: none; width: 100%; }
-        }
-        
-        .is-flex { display: flex; }
-        .is-flex-direction-column { flex-direction: column; }
-        .is-justify-content-space-between { justify-content: space-between; }
-        
-        .message { background-color: #f5f5f5; border-left: 5px solid #dbdbdb; color: #363636; margin-bottom: 1rem; padding: 1.25rem 1.5rem; }
-        .message.is-info { background-color: #f0f7ff; border-left-color: #3273dc; }
-        .message.is-success { background-color: #f0fdf4; border-left-color: #48c774; }
-        .message.is-warning { background-color: #fffbf0; border-left-color: #ffdd57; }
-        .message.is-danger { background-color: #fff5f7; border-left-color: #f14668; }
-        
-        .message-body { padding: 1rem; }
-        
-        .table { background-color: white; color: #363636; width: 100%; border-collapse: collapse; }
-        .table td, .table th { border: 1px solid #dbdbdb; padding: 0.75em; }
-        .table th { background-color: #f5f5f5; color: #363636; text-align: left; }
-        
-        .tabs { border-bottom: 1px solid #dbdbdb; display: flex; margin-bottom: 1rem; }
-        .tabs a { border-bottom: 3px solid transparent; color: #363636; padding: 0.75em 1em; text-decoration: none; }
-        .tabs a.is-active { border-bottom-color: #3273dc; color: #3273dc; }
-        .tabs a:hover { border-bottom-color: #b5b5b5; }
+        label.is-dark { color: #d1d5db; }
         
         .tab-content { display: none; }
         .tab-content.is-active { display: block; }
-        
-        .tag { align-items: center; background-color: #f5f5f5; border-radius: 4px; color: #363636; display: inline-flex; font-size: 0.875rem; height: 2em; justify-content: center; line-height: 1.5; padding-left: 0.75em; padding-right: 0.75em; white-space: nowrap; }
-        .tag.is-primary { background-color: #3273dc; color: white; }
-        
-        .is-hidden { display: none !important; }
-        .mt-3 { margin-top: 1.5rem; }
-        .mb-3 { margin-bottom: 1.5rem; }
-        .p-3 { padding: 1.5rem; }
     </style>
 </head>
-<body>
+<body class="is-dark">
     <section class="section">
         <div class="container">
             <h1>Nexus Timetable to iCal Converter</h1>
@@ -107,15 +70,15 @@
                     <div class="field">
                         <label class="label">Select CSV File</label>
                         <div class="control">
-                            <input type="file" id="csvFile" accept=".csv" onchange="handleCsvUpload(event)">
+                            <input type="file" id="csvFile" accept=".csv" class="is-dark" onchange="handleCsvUpload(event)">
                         </div>
                     </div>
                     
-                    <div id="uploadMessage" class="message is-hidden mt-3">
+                    <div id="uploadMessage" class="message is-hidden is-dark mt-3">
                         <div class="message-body" id="uploadMessageText"></div>
                     </div>
                     
-                    <div id="dateRangeInfo" class="box is-hidden mt-3">
+                    <div id="dateRangeInfo" class="box is-hidden is-dark mt-3">
                         <h4>Detected Date Range</h4>
                         <p><strong>Earliest date:</strong> <span id="earliestDate"></span></p>
                         <p><strong>Latest date:</strong> <span id="latestDate"></span></p>
@@ -125,13 +88,13 @@
 
             <!-- Tab 2: Settings -->
             <div id="settings" class="tab-content is-hidden">
-                <div class="box">
+                <div class="box is-dark">
                     <h2>Customization Settings</h2>
                     
                     <div class="field">
                         <label class="label">Year Level</label>
                         <div class="control">
-                            <select id="yearLevel" onchange="saveSettings()">
+                            <select id="yearLevel" class="is-dark" onchange="saveSettings()">
                                 <option value="">Select year level...</option>
                                 <option value="7">Year 7</option>
                                 <option value="8">Year 8</option>
@@ -148,7 +111,7 @@
                             <div class="field">
                                 <label class="label">Start Date</label>
                                 <div class="control">
-                                    <input type="date" id="startDate" onchange="saveSettings()">
+                                    <input type="date" id="startDate" class="is-dark" onchange="saveSettings()">
                                 </div>
                             </div>
                         </div>
@@ -156,7 +119,7 @@
                             <div class="field">
                                 <label class="label">End Date</label>
                                 <div class="control">
-                                    <input type="date" id="endDate" onchange="saveSettings()">
+                                    <input type="date" id="endDate" class="is-dark" onchange="saveSettings()">
                                 </div>
                             </div>
                         </div>
@@ -165,7 +128,7 @@
                     <div class="field">
                         <label class="label">School Term Number</label>
                         <div class="control">
-                            <select id="termNumber" onchange="saveSettings()">
+                            <select id="termNumber" class="is-dark" onchange="saveSettings()">
                                 <option value="">Select term...</option>
                                 <option value="1">Term 1</option>
                                 <option value="2">Term 2</option>
@@ -190,21 +153,21 @@
                     <!-- Rename Mappings Section -->
                     <div id="renameSection" class="is-hidden mt-3">
                         <h4>Subject Rename Mappings (Optional)</h4>
-                        <p style="font-size: 0.9rem; color: #666;">Leave blank to use original names. Example: "Biology 10A" → "Bio"</p>
+                        <p style="font-size: 0.9rem; color: #9ca3af;">Leave blank to use original names. Example: "Biology 10A" → "Bio"</p>
                         <div id="renameMappings" class="mt-3"></div>
-                        <button class="button is-small mt-3" onclick="addRenameMapping()">+ Add Another Mapping</button>
+                        <button class="button is-small is-dark mt-3" onclick="addRenameMapping()">+ Add Another Mapping</button>
                     </div>
 
-                    <button class="button is-success mt-3" onclick="goToNextTab('preview')">Continue to Preview →</button>
+                    <button class="button is-success is-dark mt-3" onclick="goToNextTab('preview')">Continue to Preview →</button>
                 </div>
             </div>
 
             <!-- Tab 3: Preview & Download -->
             <div id="preview" class="tab-content is-hidden">
-                <div class="box">
+                <div class="box is-dark">
                     <h2>Preview & Download</h2>
                     
-                    <div id="previewMessage" class="message is-hidden">
+                    <div id="previewMessage" class="message is-hidden is-dark">
                         <div class="message-body" id="previewMessageText"></div>
                     </div>
 
@@ -212,7 +175,7 @@
                         <h4>Events Summary</h4>
                         <p><strong id="eventCount">0</strong> events will be included in your calendar.</p>
                         
-                        <table class="table is-striped mt-3">
+                        <table class="table is-striped is-dark mt-3">
                             <thead>
                                 <tr>
                                     <th>Event Name</th>
@@ -224,7 +187,7 @@
                             </tbody>
                         </table>
 
-                        <button class="button is-primary is-large mt-3" onclick="downloadCalendar()">
+                        <button class="button is-primary is-large is-dark mt-3" onclick="downloadCalendar()">
                             📥 Download Calendar File
                         </button>
                     </div>
@@ -306,36 +269,68 @@
             if (lines.length < 2) throw new Error('CSV must have at least a header row');
             
             // Parse header
-            const header = lines[0].split(',').map(h => h.trim());
+            const header = lines[0].split(',').map(h => h.trim().toLowerCase());
             
-            // Find column indices
-            const startDateIdx = header.findIndex(h => h.toLowerCase().includes('start') && h.toLowerCase().includes('date'));
-            const endDateIdx = header.findIndex(h => h.toLowerCase().includes('end') && h.toLowerCase().includes('date'));
-            const startTimeIdx = header.findIndex(h => h.toLowerCase().includes('start') && h.toLowerCase().includes('time'));
-            const endTimeIdx = header.findIndex(h => h.toLowerCase().includes('end') && h.toLowerCase().includes('time'));
-            const nameIdx = header.findIndex(h => h.toLowerCase().includes('name') || h.toLowerCase().includes('class'));
-            const locationIdx = header.findIndex(h => h.toLowerCase().includes('location') || h.toLowerCase().includes('classroom') || h.toLowerCase().includes('room'));
+            // Find column indices - look for exact Nexus column names
+            const startDateIdx = header.indexOf('start_date');
+            const finishDateIdx = header.indexOf('finish_date');
+            const startTimeIdx = header.indexOf('start_time');
+            const finishTimeIdx = header.indexOf('finish_time');
+            const nameIdx = header.indexOf('name');
+            const locationIdx = header.indexOf('location');
             
             if (startDateIdx === -1 || startTimeIdx === -1 || nameIdx === -1) {
-                throw new Error('CSV must contain Start Date, Start Time, and Name columns');
+                throw new Error('CSV must contain start_date, start_time, and name columns');
             }
 
             const rows = [];
             for (let i = 1; i < lines.length; i++) {
                 if (lines[i].trim() === '') continue;
                 
-                const cols = lines[i].split(',').map(c => c.trim());
+                // Handle quoted CSV fields
+                const cols = parseCSVLine(lines[i]);
+                
+                if (cols.length <= nameIdx) continue;
+                
                 rows.push({
                     startDate: cols[startDateIdx],
                     startTime: cols[startTimeIdx],
-                    endDate: cols[endDateIdx] || cols[startDateIdx],
-                    endTime: cols[endTimeIdx] || cols[startTimeIdx],
+                    endDate: cols[finishDateIdx] || cols[startDateIdx],
+                    endTime: cols[finishTimeIdx] || cols[startTimeIdx],
                     name: cols[nameIdx],
                     location: locationIdx >= 0 ? cols[locationIdx] : ''
                 });
             }
 
             return rows;
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let insideQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                const nextChar = line[i + 1];
+
+                if (char === '"') {
+                    if (insideQuotes && nextChar === '"') {
+                        current += '"';
+                        i++;
+                    } else {
+                        insideQuotes = !insideQuotes;
+                    }
+                } else if (char === ',' && !insideQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+
+            result.push(current.trim());
+            return result;
         }
 
         function detectAndSetDateRange() {
@@ -414,13 +409,13 @@
             const html = `
                 <div class="columns" style="gap: 0.5rem; margin-bottom: 0.5rem;">
                     <div class="column">
-                        <input type="text" class="rename-original" placeholder="Original name (e.g., Biology 10A)" value="${original}" onchange="saveSettings()">
+                        <input type="text" class="rename-original is-dark" placeholder="Original name (e.g., Biology 10A)" value="${original}" onchange="saveSettings()">
                     </div>
                     <div class="column">
-                        <input type="text" class="rename-renamed" placeholder="New name (e.g., Bio)" value="${renamed}" onchange="saveSettings()">
+                        <input type="text" class="rename-renamed is-dark" placeholder="New name (e.g., Bio)" value="${renamed}" onchange="saveSettings()">
                     </div>
                     <div class="column" style="flex: 0 0 auto;">
-                        <button class="button is-danger is-small" onclick="this.parentElement.parentElement.remove(); saveSettings();">✕</button>
+                        <button class="button is-danger is-small is-dark" onclick="this.parentElement.parentElement.remove(); saveSettings();">✕</button>
                     </div>
                 </div>
             `;
@@ -516,11 +511,27 @@
         }
 
         function parseDateTime(dateStr, timeStr) {
-            const dateParts = dateStr.split('/').map(p => parseInt(p));
-            const timeParts = timeStr.split(':').map(p => parseInt(p));
+            // Parse Nexus format: DD/MM/YYYY HH:MM
+            const dateParts = dateStr.split('/').map(p => parseInt(p.trim()));
+            const timeParts = timeStr.split(':').map(p => parseInt(p.trim()));
             
-            // Assume format DD/MM/YYYY HH:MM
-            const date = new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1], 0);
+            if (dateParts.length !== 3 || timeParts.length < 2) {
+                throw new Error(`Invalid date/time format: ${dateStr} ${timeStr}`);
+            }
+            
+            // dateParts: [day, month, year]
+            const day = dateParts[0];
+            const month = dateParts[1] - 1; // JavaScript months are 0-indexed
+            const year = dateParts[2];
+            const hours = timeParts[0];
+            const minutes = timeParts[1];
+            
+            const date = new Date(year, month, day, hours, minutes, 0);
+            
+            if (isNaN(date.getTime())) {
+                throw new Error(`Invalid date: ${dateStr} ${timeStr}`);
+            }
+            
             return date;
         }
 
