@@ -6,151 +6,6 @@
     <title>Nexus Timetable to iCal</title>
     <link rel="stylesheet" href="bulma.min.css">
     <style>
-        :root {
-            color-scheme: dark;
-        }
-
-        html.is-dark,
-        html.is-dark body {
-            background-color: #1a1a1a;
-            color: #f5f5f5;
-        }
-
-        html.is-dark .box {
-            background-color: #262626;
-            color: #f5f5f5;
-        }
-
-        html.is-dark .section {
-            background-color: #1a1a1a;
-        }
-
-        html.is-dark .label {
-            color: #f5f5f5;
-        }
-
-        html.is-dark input,
-        html.is-dark select,
-        html.is-dark textarea {
-            background-color: #2a2a2a;
-            color: #f5f5f5;
-            border-color: #404040;
-        }
-
-        html.is-dark input:focus,
-        html.is-dark select:focus,
-        html.is-dark textarea:focus {
-            border-color: #569cd6;
-            color: #f5f5f5;
-        }
-
-        html.is-dark .tabs {
-            border-bottom-color: #404040;
-        }
-
-        html.is-dark .tabs a {
-            color: #b0b0b0;
-            border-bottom-color: transparent;
-        }
-
-        html.is-dark .tabs a.is-active {
-            border-bottom-color: #569cd6;
-            color: #569cd6;
-        }
-
-        html.is-dark .tabs a:hover {
-            color: #f5f5f5;
-        }
-
-        html.is-dark .table {
-            background-color: #262626;
-            color: #f5f5f5;
-        }
-
-        html.is-dark .table thead th {
-            background-color: #1a1a1a;
-            color: #f5f5f5;
-            border-color: #404040;
-        }
-
-        html.is-dark .table td,
-        html.is-dark .table th {
-            border-color: #404040;
-        }
-
-        html.is-dark .message {
-            background-color: #262626;
-            border-left-color: #569cd6;
-            color: #f5f5f5;
-        }
-
-        html.is-dark .message.is-success {
-            border-left-color: #6a9955;
-            background-color: #1a3a1a;
-        }
-
-        html.is-dark .message.is-warning {
-            border-left-color: #d7ba7d;
-            background-color: #3a3a1a;
-        }
-
-        html.is-dark .message.is-danger {
-            border-left-color: #f48771;
-            background-color: #3a1a1a;
-        }
-
-        html.is-dark .button {
-            background-color: #2a2a2a;
-            color: #f5f5f5;
-            border-color: #404040;
-        }
-
-        html.is-dark .button:hover {
-            background-color: #363636;
-            border-color: #569cd6;
-            color: #f5f5f5;
-        }
-
-        html.is-dark .button.is-primary {
-            background-color: #569cd6;
-            color: #1a1a1a;
-            border-color: #569cd6;
-        }
-
-        html.is-dark .button.is-primary:hover {
-            background-color: #6db3ff;
-        }
-
-        html.is-dark .button.is-success {
-            background-color: #6a9955;
-            color: #f5f5f5;
-            border-color: #6a9955;
-        }
-
-        html.is-dark .button.is-success:hover {
-            background-color: #7bb067;
-        }
-
-        html.is-dark .button.is-danger {
-            background-color: #f48771;
-            color: #1a1a1a;
-            border-color: #f48771;
-        }
-
-        html.is-dark .button.is-danger:hover {
-            background-color: #f5a895;
-        }
-
-        html.is-dark .select select {
-            background-color: #2a2a2a;
-            color: #f5f5f5;
-            border-color: #404040;
-        }
-
-        html.is-dark .radio {
-            color: #f5f5f5;
-        }
-
         .tab-content {
             display: none;
         }
@@ -529,9 +384,9 @@
 
         function extractClassCode(fullName) {
             // Extract class code from format like "Continuing Media 08 (08CMe_T3_1)"
-            // Return just the code part like "CMe"
-            const match = fullName.match(/\((\d+)([A-Z]+)/);
-            return match ? match[2] : fullName;
+            // Return just the code part like "CMe" (3 characters after the year)
+            const match = fullName.match(/\(\d+([A-Za-z]{3})/);
+            return match ? match[1] : fullName;
         }
 
         function extractGroupNumber(fullName) {
