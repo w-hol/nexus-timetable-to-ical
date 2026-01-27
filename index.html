@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="is-dark">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,7 +15,7 @@
         }
     </style>
 </head>
-<body class="is-dark">
+<body>
     <section class="section">
         <div class="container">
             <h1>Nexus Timetable to iCal Converter</h1>
@@ -86,14 +86,28 @@
                             <label class="radio">
                                 <input type="radio" name="nameFormat" value="classCode" onchange="saveSettings(); toggleRenameFields()"> Class Code Only
                             </label>
+                            <label class="radio">
+                                <input type="radio" name="nameFormat" value="custom" onchange="saveSettings(); toggleRenameFields()"> Custom
+                            </label>
                         </div>
                     </div>
 
-                    <!-- Rename Mappings Section -->
+                    <!-- Custom Naming Section -->
                     <div id="renameSection" class="is-hidden mt-5">
-                        <h4>Class Name Customization</h4>
-                        <p style="font-size: 0.9rem;">Customize how class names appear in your calendar.</p>
-                        <div id="renameMappings" class="mt-3"></div>
+                        <h4>Custom Event Names</h4>
+                        <p style="font-size: 0.9rem;">Edit the names as they will appear in your calendar.</p>
+                        <div class="table-container mt-3">
+                            <table class="table is-fullwidth">
+                                <thead>
+                                    <tr>
+                                        <th>Original / Code</th>
+                                        <th>Custom Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="renameMappings">
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <button class="button is-success mt-5" onclick="goToNextTab('preview')">Continue to Preview →</button>
@@ -400,7 +414,7 @@
             const format = document.querySelector('input[name="nameFormat"]:checked')?.value;
             const renameSection = document.getElementById('renameSection');
             
-            if (format === 'fullName') {
+            if (format === 'custom') {
                 renameSection.classList.remove('is-hidden');
                 // Build mapping fields from CSV data
                 if (csvData.length > 0) {
@@ -412,26 +426,40 @@
         }
 
         function buildRenameMapping() {
-            // Get unique subject names from CSV data
-            const uniqueSubjects = [...new Set(csvData.map(row => extractSubjectName(row.name)))];
+            // Get unique subject names and their codes from CSV data
+            const uniqueClasses = {};
+            csvData.forEach(row => {
+                const subject = extractSubjectName(row.name);
+                const code = extractClassCode(row.name);
+                if (!uniqueClasses[subject]) {
+                    uniqueClasses[subject] = code;
+                }
+            });
+            
             const container = document.getElementById('renameMappings');
             const settings = JSON.parse(localStorage.getItem('timetableSettings') || '{}');
             const existingMappings = settings.renameMappings || [];
             
             container.innerHTML = '';
             
-            uniqueSubjects.forEach(subject => {
+            Object.entries(uniqueClasses).forEach(([subject, code]) => {
                 // Check if there's an existing mapping for this subject
                 const existing = existingMappings.find(m => m.original === subject);
                 const customName = existing ? existing.renamed : subject;
                 
+                const label = `${subject}/${code}`;
+                
                 const html = `
-                    <div class="field" style="margin-bottom: 1.5rem;">
-                        <label class="label">${subject}</label>
-                        <div class="control">
-                            <input type="text" class="input rename-mapping-${subject.replace(/\s+/g, '_')}" data-original="${subject}" placeholder="${subject}" value="${customName}" onchange="saveSettings()">
-                        </div>
-                    </div>
+                    <tr>
+                        <td>${label}</td>
+                        <td>
+                            <div class="field">
+                                <div class="control">
+                                    <input type="text" class="input rename-mapping-${subject.replace(/\s+/g, '_')}" data-original="${subject}" placeholder="${subject}" value="${customName}" onchange="saveSettings()">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
                 `;
                 
                 container.insertAdjacentHTML('beforeend', html);
@@ -445,6 +473,9 @@
                 const renamed = input.value.trim() || original;
                 if (original && renamed !== original) {
                     mappings.push({ original, renamed });
+                } else if (original) {
+                    // Always include, even if not renamed, for custom mode
+                    mappings.push({ original, renamed: original });
                 }
             });
             return mappings;
@@ -483,11 +514,14 @@
                         // Use just the class code
                         eventName = extractClassCode(row.name);
                     } else if (nameFormat === 'fullName') {
-                        // Use subject name and apply rename mappings
+                        // Use subject name
+                        eventName = extractSubjectName(row.name);
+                    } else if (nameFormat === 'custom') {
+                        // Use subject name and apply custom mappings
                         const subjectName = extractSubjectName(row.name);
                         eventName = subjectName;
                         
-                        // Apply rename mappings
+                        // Apply custom mappings
                         renameMappings.forEach(mapping => {
                             if (eventName === mapping.original) {
                                 eventName = mapping.renamed;
