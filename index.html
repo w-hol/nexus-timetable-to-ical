@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus Timetable to iCal</title>
-    <link rel="stylesheet" href="bulma.css">
+    <link rel="stylesheet" href="libraries/bulma.css">
     <style>
         .tab-content {
             display: none;
@@ -69,6 +69,9 @@
     <section class="section">
         <div class="container">
             <h1 class="title is-1">Nexus Timetable to iCal Converter</h1>
+            
+            <!-- Notifications Container -->
+            <div id="notificationsContainer" class="mb-5"></div>
             
             <!-- Main Content Tabs -->
             <div class="tabs is-fullwidth is-medium is-toggle">
@@ -255,8 +258,9 @@
         </div>
     </section>
 
-    <script src="ics.js"></script>
-    <script src="term-dates.js"></script>
+    <script src="libraries/ics.js"></script>
+    <script src="data/term-dates.js"></script>
+    <script src="data/notifications.js"></script>
     <script>
         // Global state
         let csvData = [];
@@ -294,6 +298,7 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
+            loadNotifications();
             setupTabNavigation();
             loadSettings();
             updateContinueButtonVisibility();
@@ -302,6 +307,27 @@
                 updateTabDisabledState();
             }, 100);
         });
+
+        // Load and display notifications
+        function loadNotifications() {
+            const container = document.getElementById('notificationsContainer');
+            
+            NOTIFICATIONS.forEach(notification => {
+                const div = document.createElement('div');
+                div.className = `notification is-${notification.type}`;
+                if (notification.isDark) {
+                    div.className += ' is-dark';
+                }
+                
+                // Simple markdown parsing for bold text
+                let content = notification.content;
+                content = content.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                content = content.replace(/\*(.+?)\*/g, '<em>$1</em>');
+                
+                div.innerHTML = content;
+                container.appendChild(div);
+            });
+        }
 
         // Tab navigation
         function setupTabNavigation() {
