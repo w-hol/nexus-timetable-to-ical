@@ -63,6 +63,15 @@
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
+        
+        /* Drag and drop styling */
+        .drop-zone {
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .drop-zone.drag-over {
+            background-color: rgba(72, 199, 142, 0.1);
+            border: 2px dashed #48c78e;
+        }
     </style>
 </head>
 <body>
@@ -83,9 +92,10 @@
             </div>
 
             <!-- Tab 1: Upload CSV -->
-            <div id="upload" class="tab-content is-active box">
+            <div id="upload" class="tab-content is-active box drop-zone">
                 <div class="mb-5">
                     <h2 class="title is-3">Upload Timetable CSV</h2>
+                    <p class="subtitle is-6">Click to select a file or drag and drop it anywhere on this page</p>
                 </div>
 
                 <!-- Guide: Exporting the Timetable -->
@@ -103,7 +113,7 @@
                 </div>
                 
                 <div class="field">
-                    <label class="label">Select CSV File</label>
+                    <label class="label">Select CSV File (or drag and drop anywhere on this page)</label>
                     <div class="control">
                         <input type="file" id="csvFile" accept=".csv" onchange="handleCsvUpload(event)">
                     </div>
@@ -115,7 +125,8 @@
                 
                 <div id="dateRangeInfo" class="box is-hidden mt-3">
                     <p><strong>Date Range:</strong> <span id="earliestDate"></span> to <span id="latestDate"></span></p>
-                    <p><strong>Total Events Loaded:</strong> <span id="totalEventsLoaded"></span></p>
+                    <p><strong>Total Events Found:</strong> <span id="totalEventsFound"></span></p>
+                    <p><strong>Timetable Classes:</strong> <span id="timetableEventsCount"></span></p>
                 </div>
 
                 <button id="continueToSettingsBtn" class="button is-success is-dark is-fullwidth mt-5 is-hidden" onclick="goToNextTab('settings')">Continue to Settings</button>
@@ -302,11 +313,70 @@
             setupTabNavigation();
             loadSettings();
             updateContinueButtonVisibility();
+            setupDragAndDrop();
             // Set initial tab state
             setTimeout(function() {
                 updateTabDisabledState();
             }, 100);
         });
+
+        // Drag and drop file upload
+        function setupDragAndDrop() {
+            const dropZone = document.getElementById('upload');
+            let dragCounter = 0;
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            dropZone.addEventListener('dragenter', () => {
+                dragCounter++;
+                dropZone.classList.add('drag-over');
+            }, false);
+            
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            }, false);
+            
+            dropZone.addEventListener('dragleave', () => {
+                dragCounter--;
+                if (dragCounter === 0) {
+                    dropZone.classList.remove('drag-over');
+                }
+            }, false);
+            
+            dropZone.addEventListener('drop', (e) => {
+                dragCounter = 0;
+                dropZone.classList.remove('drag-over');
+                handleDrop(e);
+            }, false);
+        }
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.name.endsWith('.csv')) {
+                    // Update the file input
+                    const input = document.getElementById('csvFile');
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    input.files = dataTransfer.files;
+                    
+                    // Trigger the upload handler
+                    handleCsvUpload({ target: input });
+                } else {
+                    showMessage('uploadMessage', 'Please drop a CSV file', 'is-warning');
+                }
+            }
+        }
 
         // Load and display notifications
         function loadNotifications() {
@@ -645,11 +715,25 @@
                         buildRenameMapping();
                         populateRenameMapping();
                     }
-                    showMessage('uploadMessage', 'CSV uploaded successfully!', 'is-success');
-                    document.getElementById('dateRangeInfo').classList.remove('is-hidden');
-                    updateContinueButtonVisibility();
-                    updateTabDisabledState();
-                    renderCalendar();
+                    
+                    // Display statistics
+                    const stats = window.csvStats || { totalEvents: csvData.length, timetableEvents: csvData.length };
+                    document.getElementById('totalEventsFound').textContent = stats.totalEvents;
+                    document.getElementById('timetableEventsCount').textContent = stats.timetableEvents;
+                    
+                    // Check if there are any timetable classes
+                    if (csvData.length === 0) {
+                        showMessage('uploadMessage', 'No timetable classes found in the CSV. The file may not contain any events with class codes.', 'is-warning');
+                        document.getElementById('dateRangeInfo').classList.add('is-hidden');
+                        updateContinueButtonVisibility();
+                        updateTabDisabledState();
+                    } else {
+                        showMessage('uploadMessage', 'CSV uploaded successfully!', 'is-success');
+                        document.getElementById('dateRangeInfo').classList.remove('is-hidden');
+                        updateContinueButtonVisibility();
+                        updateTabDisabledState();
+                        renderCalendar();
+                    }
                 } catch (error) {
                     console.error('CSV Error:', error);
                     showMessage('uploadMessage', 'Error parsing CSV: ' + error.message, 'is-danger');
@@ -668,21 +752,34 @@
             
             console.log('CSV Header:', header);
             
-            // Find column indices - look for exact Nexus column names
+            // Expected Nexus timetable columns
+            const expectedColumns = ['start_date', 'start_time', 'finish_date', 'finish_time', 
+                                     'all_day', 'name', 'detail', 'location', 'event_type', 
+                                     'publish_date', 'attendance'];
+            
+            // Validate that this looks like a Nexus export
+            const missingColumns = expectedColumns.filter(col => !header.includes(col));
+            if (missingColumns.length > 0) {
+                throw new Error('The CSV header row is broken or invalid. This does not appear to be a valid Nexus timetable export.');
+            }
+            
+            // Find column indices
             const startDateIdx = header.indexOf('start_date');
             const finishDateIdx = header.indexOf('finish_date');
             const startTimeIdx = header.indexOf('start_time');
             const finishTimeIdx = header.indexOf('finish_time');
+            const allDayIdx = header.indexOf('all_day');
             const nameIdx = header.indexOf('name');
             const locationIdx = header.indexOf('location');
             
-            console.log('Column indices:', { startDateIdx, finishDateIdx, startTimeIdx, finishTimeIdx, nameIdx, locationIdx });
-            
-            if (startDateIdx === -1 || startTimeIdx === -1 || nameIdx === -1) {
-                throw new Error('CSV must contain start_date, start_time, and name columns');
-            }
+            console.log('Column indices:', { startDateIdx, finishDateIdx, startTimeIdx, finishTimeIdx, allDayIdx, nameIdx, locationIdx });
 
-            const rows = [];
+            const allRows = [];
+            const timetableRows = [];
+            
+            // Regex pattern for class codes like (08MeG_S2_10) or (08HGT_S2_8)
+            const classCodePattern = /\(\d{2}[A-Za-z]{2,}_[A-Z]\d_\d+\)/;
+            
             for (let i = 1; i < lines.length; i++) {
                 if (lines[i].trim() === '') continue;
                 
@@ -691,18 +788,49 @@
                 
                 if (cols.length <= nameIdx) continue;
                 
-                rows.push({
+                // Check if this is an all-day event
+                const isAllDay = allDayIdx >= 0 && (cols[allDayIdx] === '1' || cols[allDayIdx].toLowerCase() === 'true');
+                
+                // Validate date and time formats
+                try {
+                    parseDateOnly(cols[startDateIdx]);
+                    parseDateOnly(cols[finishDateIdx]);
+                    
+                    // Only validate times for non-all-day events
+                    if (!isAllDay) {
+                        parseTimeOnly(cols[startTimeIdx]);
+                        parseTimeOnly(cols[finishTimeIdx]);
+                    }
+                } catch (error) {
+                    throw new Error(`Row ${i + 1}: ${error.message}`);
+                }
+                
+                const row = {
                     startDate: cols[startDateIdx],
                     startTime: cols[startTimeIdx],
                     endDate: cols[finishDateIdx] || cols[startDateIdx],
                     endTime: cols[finishTimeIdx] || cols[startTimeIdx],
                     name: cols[nameIdx],
                     location: locationIdx >= 0 ? cols[locationIdx] : ''
-                });
+                };
+                
+                allRows.push(row);
+                
+                // Only include timetable classes (those with class codes in parentheses)
+                if (classCodePattern.test(row.name)) {
+                    timetableRows.push(row);
+                }
             }
 
-            console.log('Parsed rows:', rows.length);
-            return rows;
+            console.log('Total events:', allRows.length, '| Timetable classes:', timetableRows.length);
+            
+            // Store statistics globally for display
+            window.csvStats = {
+                totalEvents: allRows.length,
+                timetableEvents: timetableRows.length
+            };
+            
+            return timetableRows;
         }
 
         function parseCSVLine(line) {
@@ -779,8 +907,31 @@
             return date;
         }
 
+        function parseTimeOnly(timeStr) {
+            // Parse Nexus format: HH:MM
+            const timeParts = timeStr.split(':').map(p => parseInt(p.trim()));
+            
+            if (timeParts.length < 2) {
+                throw new Error(`Invalid time format: ${timeStr}`);
+            }
+            
+            const hours = timeParts[0];
+            const minutes = timeParts[1];
+            
+            // Validate ranges
+            if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+                throw new Error(`Invalid time: ${timeStr}`);
+            }
+            
+            return { hours, minutes };
+        }
+
         function detectAndSetDateRange() {
-            if (csvData.length === 0) return;
+            if (csvData.length === 0) {
+                document.getElementById('earliestDate').textContent = '—';
+                document.getElementById('latestDate').textContent = '—';
+                return;
+            }
 
             try {
                 const dates = csvData.map(row => parseDateOnly(row.startDate));
