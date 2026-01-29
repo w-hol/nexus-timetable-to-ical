@@ -1,7 +1,12 @@
 const NOTIFICATIONS = [
   {
-    "type": "warning",
+    "type": "info",
     "isDark": true,
-    "content": "**Note:** Timetables/classes have not been uploaded to Nexus, so it is not possible to export them yet."
+    "content": "**Note:** Timetables/classes have only been uploaded to Nexus for some people, as far as I know"
+  },
+  {
+    "type": "info",
+    "isDark": true,
+    "Content": "There is currently no button for the calendar page, but you can just add '/calender' to the end of the base url to get there"
   }
 ];
