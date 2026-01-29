@@ -7,6 +7,6 @@ const NOTIFICATIONS = [
   {
     "type": "info",
     "isDark": true,
-    "Content": "There is currently no button for the calendar page, but you can just add '/calender' to the end of the base url to get there"
+    "content": "There is currently no button for the calendar page, but you can just add '/calender' to the end of the base url to get there"
   }
 ];
