@@ -297,10 +297,14 @@
                 const termStart = new Date(startYear, startMonth - 1, startDay);
                 const termEnd = new Date(endYear, endMonth - 1, endDay);
                 
-                if (checkDate >= termStart && checkDate <= termEnd) {
-                    // Calculate week number within term
-                    const daysDiff = Math.floor((checkDate - termStart) / (1000 * 60 * 60 * 24));
-                    const weekNum = Math.floor(daysDiff / 7) + 1;
+                // Find the Sunday of the calendar week containing the term start
+                const termStartSunday = new Date(termStart);
+                termStartSunday.setDate(termStartSunday.getDate() - termStartSunday.getDay());
+
+                // Include the partial first week (days before term start but in same calendar week)
+                if (checkDate >= termStartSunday && checkDate <= termEnd) {
+                    // Calculate week number based on calendar weeks from the term's first Sunday
+                    const weekNum = Math.floor((checkDate - termStartSunday) / (7 * 24 * 60 * 60 * 1000)) + 1;
                     return { term: term.term, week: weekNum, label: `T${term.term}W${weekNum}` };
                 }
             }
